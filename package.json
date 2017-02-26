@@ -1,6 +1,6 @@
 {
   "name": "factory.ts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "description": "A Typescript test data factory similar to factory_girl and rosie",
   "scripts": {
@@ -11,10 +11,10 @@
   "engines": {
     "node": ">= 0.10.0"
   },
-  "main": "src/index.js",
-  "typings": "src/index",
+  "main": "lib/index.js",
+  "typings": "lib/index",
   "files": [
-      "src/"
+      "lib/"
   ],
   "author": "Will Pleasant-Ryan",
   "devDependencies": {
