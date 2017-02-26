@@ -1,6 +1,6 @@
 export type FactoryFunc<T> = (item : Partial<T>) => T
 
-class Gen<T> {
+class Generator<T> {
   constructor(readonly func: (seq: number) => T) {
   }
   public build(seq : number) : T
@@ -87,15 +87,15 @@ class Factory<T> {
 }
 
 type Builder<T> = {
-  [P in keyof T]: T[P] | Gen<T[P]> | Derived<T,T[P]>;
+  [P in keyof T]: T[P] | Generator<T[P]> | Derived<T,T[P]>;
 }
 
-export function val<T>(val : T) : Gen<T> { 
-  return new Gen(() => val);
+export function val<T>(val : T) : Generator<T> { 
+  return new Generator(() => val);
 } 
 
-export function each<T>(f: (seqNum:number) => T) : Gen<T> { 
-  return new Gen(f);
+export function each<T>(f: (seqNum:number) => T) : Generator<T> { 
+  return new Generator(f);
 } 
 
 interface BaseDerived {
@@ -116,7 +116,7 @@ function buildBase<T>(seqNum : number, builder: Builder<T>) : BaseBuild<T> {
     const v = (builder as any)[key];
     let value = v;
     if (!!v && typeof v === 'object') {
-      if (v.constructor === Gen) {
+      if (v.constructor === Generator) {
         value = v.build(seqNum);
       }
       else if (v.constructor == Derived) {

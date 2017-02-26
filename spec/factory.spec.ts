@@ -1,4 +1,4 @@
-import * as Factory from '../src/factory';
+import * as Factory from '../src';
 import { expect } from 'chai';
 
 interface ParentType {

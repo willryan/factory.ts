@@ -1,11 +1,22 @@
 {
-  "name": "webpack-rails-example",
-  "version": "0.0.1",
+  "name": "factory.ts",
+  "version": "0.1.0",
   "license": "MIT",
+  "description": "A Typescript test data factory similar to factory_girl and rosie",
   "scripts": {
     "test": "NODE_ENV=test mocha --require spec/setup.js --require ts-node/register",
     "testAll": "NODE_ENV=test mocha --require spec/setup.js --require ts-node/register 'spec/**/*.spec.ts*'"
   },
+  "repository": "https://github.com/willryan/factory.ts",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "main": "src/index.js",
+  "typings": "src/index",
+  "files": [
+      "src/"
+  ],
+  "author": "Will Pleasant-Ryan",
   "devDependencies": {
     "@types/chai": "^3.4.34",
     "@types/mocha": "^2.2.32",
