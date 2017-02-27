@@ -1,6 +1,6 @@
 export type FactoryFunc<T> = (item : Partial<T>) => T
 
-class Generator<T> {
+export class Generator<T> {
   constructor(readonly func: (seq: number) => T) {
   }
   public build(seq : number) : T
@@ -8,7 +8,7 @@ class Generator<T> {
     return this.func(seq);
   }
 }
-class Derived<TOwner,TProperty> {
+export class Derived<TOwner,TProperty> {
   constructor(readonly func: (owner: TOwner, seq: number) => TProperty) { }
   public build(owner : TOwner, seq: number) : TProperty
   {
@@ -17,7 +17,7 @@ class Derived<TOwner,TProperty> {
   }
 }
 
-class Factory<T> {
+export class Factory<T> {
   private seqNum: number;
   constructor(readonly builder: Builder<T>) {
     this.seqNum = 0;
@@ -86,7 +86,7 @@ class Factory<T> {
 
 }
 
-type Builder<T> = {
+export type Builder<T> = {
   [P in keyof T]: T[P] | Generator<T[P]> | Derived<T,T[P]>;
 }
 
