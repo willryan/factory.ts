@@ -1,2 +1,88 @@
 # factory.ts
 A library to ease creation of factories for test data for Typescript
+
+Given an interface or type definition, create a factory for generating test data. Values for each key may be defaulted or be calculated each time based on a sequence number and the values for other keys.
+
+## Example
+
+### Interface
+
+```typescript
+interface Person {
+  id: number
+  firstName: string
+  lastName: string
+  fullName: string
+  age: number
+}
+```
+
+### Basic factory
+
+```typescript
+import * as Factory from 'factory.ts'
+
+const personFactory = Factory.makeFactory<Person>({
+  id: Factory.each(i => i),
+  firstName: 'Bob',
+  lastName: 'Smith',
+  fullName: 'Robert J. Smith, Jr.',
+  age: Factory.each(i => 20 + (i % 10))
+});
+```
+
+For each property of Person, you can specify a default value, or call `Factory.each`. `Factory.each` takes a lambda with a sequence number that is incremented automatically between generating instances of your type (`Person` in our example).
+
+You can call `personFactory.build` with a subset of field data (`Partial<Person>`) to override defaults, and the output will be an object that conforms to Person using the definition specified in `makeFactory`.
+
+```typescript
+const james = personFactory.build({firstName: 'James', fullName: 'James Smith'});
+// { id: 1, firstName: 'James', lastName: 'Smith', fullName: 'James Smith', age: 21 };
+
+const youngBob = personFactory.build({age: 5});
+// { id: 2, firstName: 'Bob', lastName: 'Smith', fullName: 'Robert J. Smith, Jr.', age: 5 };
+```
+
+### Extending factories
+
+Occasionally you may want to extend an existing factory with some changes. For example, we might want to create a personFactory that emits a totally random age range:
+
+```typescript
+const anyAgeFactory = personFactory.extend({
+  age: Factory.each(() => randomAge(0,100)), // randomAge(min:number, max:number) => number
+});
+
+anyAgeFactory.build(); // { id: 1, ..., age: <random value> };
+```
+
+Extending a Factory creates a new, immutable Factory. Your initial factory remains unchanged.
+
+### Derived values
+
+One specific way to extend an existing factory is to make a new factory where one of the keys/properties is determined by other properties. For example. we can use this to specify fullName from firstName and lastName:
+
+```typescript
+const autoFullNameFactory = personFactory.withDerivation2(['firstName', 'lastName'], 'fullName', 
+  (fName, lName) => `${lName}, ${fName} ${lName}`);
+
+const jamesBond = autoFullNameFactory.build({ firstName: 'James', lastName: 'Bond' });
+// { id: 1, firstName: 'James', lastName: 'Bond', fullName: 'Bond, James Bond', age: 21 };
+```
+
+The `withDerivation*N*` functions consume an array of dependent key names (of length N), then the name of the property to define, then a lambda that takes the appropriate types for arguments based on the values of the dependent keys, and expects a return type that matches the derived key value type. `withDerivation1` through `withDerivation5` are provided. Ideally these would be overrides, but I have yet to figure out a way to make the Typescript compiler accept this.
+
+Note that any misspelling of dependent or derived key names in a call to `withDerivation*N*` will result in a compile error - aren't mapped types the best?
+
+Alternatively, if you need to read more than 5 properties, or just don't want to specify dependencies explicitly, `withDerivation` expects a property key to derive and a lambda that goes from a value of the overall type being built to a value of the type of the dependent property. For our fullName case that would be:
+
+```typescript
+const autoFullNameFactory = personFactory.withDerivation('fullName', (person) => 
+  `${person.lName}, ${person.fName} ${person.lName}`);
+```
+
+Personally I prefer to be explicit about the dependent keys, but it doesn't really matter.
+
+Derivations are processed in the order they are defined, and all `withDerivation` functions produce a new immutable Factory.
+
+Finally, you could instantiate a `Derived<TOwner,TProperty>` for the value of a property inside a `Factory.makeFactory` definition, but the type inference can't help you as much - you'll have to indicate the type of TOwner and TProperty.
+
