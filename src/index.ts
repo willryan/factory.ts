@@ -23,16 +23,18 @@ export class Factory<T> {
     this.seqNum = 0;
   }
 
-  public build(item: Partial<T>) : T
+  public build(item?: Partial<T>) : T
   {
     this.seqNum++;
     const base = buildBase(this.seqNum, this.builder);
     const v = Object.assign({}, base.value, item);
-    const keys = Object.keys(item);
-    for (const der of base.derived) {
-      if (keys.indexOf(der.key) < 0) {
-        (v as any)[der.key] = (der.derived as any).build(v, this.seqNum);
-      }
+    if(item){
+        const keys = Object.keys(item);
+        for (const der of base.derived) {
+            if (keys.indexOf(der.key) < 0) {
+                (v as any)[der.key] = (der.derived as any).build(v, this.seqNum);
+            }
+        }
     }
     return v;
 
