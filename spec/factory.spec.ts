@@ -78,5 +78,13 @@ describe('factories build stuff', () => {
     const bond = personFactory.build({firstName: 'James'});
     expect(bond.fullName).to.eq('James Bond');
   });
+  it('can build a list of items', () => {
+    const children = childFactory.buildList(3, {name: "Bruce"});
+    expect(children.length).to.eq(3);
+    for(let child of children) {
+      expect(child.name).to.eq('Bruce');
+      expect(child.grade).to.eq(1);
+    }
+  });
 });
 
