@@ -13,7 +13,8 @@ export declare class Factory<T> {
     readonly builder: Builder<T>;
     private seqNum;
     constructor(builder: Builder<T>);
-    build(item: Partial<T>): T;
+    build(item?: Partial<T>): T;
+    buildList(count: number, item?: Partial<T>): T[];
     extend(def: Partial<Builder<T>>): Factory<T>;
     withDerivation<KOut extends keyof T>(kOut: KOut, f: (v1: T, seq: number) => T[KOut]): Factory<T>;
     withDerivation1<K1 extends keyof T, KOut extends keyof T>(kInput: [K1], kOut: KOut, f: (v1: T[K1], seq: number) => T[KOut]): Factory<T>;
