@@ -43,6 +43,18 @@ const youngBob = personFactory.build({age: 5});
 // { id: 2, firstName: 'Bob', lastName: 'Smith', fullName: 'Robert J. Smith, Jr.', age: 5 };
 ```
 
+You can also call `personFactory.build` with no arguments to use factory defaults:
+
+```typescript
+const anybody = personFactory.build();
+```
+
+And you can create an array of objects from factory using `buildList` (with or without the `Partial` override):
+
+```typescript
+const theBradyBunch = personFactory.buildList(8, { lastName: 'Brady' });
+```
+
 ### Extending factories
 
 Occasionally you may want to extend an existing factory with some changes. For example, we might want to create a personFactory that emits a totally random age range:
