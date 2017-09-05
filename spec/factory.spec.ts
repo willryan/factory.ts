@@ -29,6 +29,11 @@ describe('factories build stuff', () => {
     expect(jimmy.name).to.eq('Jimmy');
     expect(jimmy.grade).to.eq(1);
   });
+  it('makes an object with default field from a factory', () => {
+    const jimmy = childFactory.build();
+    expect(jimmy.name).to.eq('Kid');
+    expect(jimmy.grade).to.eq(1);
+  });
   it('can make use of sequence #', () => {
     const susan = parentFactory.build({ name: 'Susan' });
     const edward = parentFactory.build({ name: 'Edward' });
