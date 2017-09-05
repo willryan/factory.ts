@@ -38,6 +38,15 @@ export class Factory<T> {
 
   }
 
+  public buildList(count: number, item: Partial<T>) : T[]
+  {
+    const ts: T[] = [];
+    for(let i = 0; i < count; i++) {
+      ts[i] = this.build(item);
+    }
+    return ts;
+  }
+
   public extend(def: Partial<Builder<T>>) : Factory<T> {
     const builder = Object.assign({}, this.builder, def);
     return new Factory(builder);
