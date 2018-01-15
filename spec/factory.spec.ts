@@ -141,4 +141,34 @@ describe("factories build stuff", () => {
     expect(post.updatedAt.getTime() - new Date().getTime()).to.be.lessThan(100);
     expect(user.email).to.eq("foo@bar.com");
   });
+  it("supports nested factories", () => {
+    interface IGroceryStore {
+      aisle: {
+        name: string;
+        typeOfFood: string;
+        budget: number;
+        tags: string[];
+      };
+    }
+
+    const groceryStoreFactory = Factory.makeFactory<IGroceryStore>({
+      aisle: {
+        name: "Junk Food Aisle",
+        typeOfFood: "Junk Food",
+        budget: 3000,
+        tags: ["a", "b", "c"]
+      }
+    });
+
+    // Error: Property 'name' is missing in type '{ budget: number; }
+    const aStore = groceryStoreFactory.build({
+      aisle: {
+        budget: 9999,
+        tags: ["a", "b"]
+      }
+    });
+    expect(aStore.aisle.budget).to.eq(9999);
+    expect(aStore.aisle.typeOfFood).to.eq("Junk Food");
+    expect(aStore.aisle.tags).to.deep.eq(["a", "b"]);
+  });
 });

@@ -1,4 +1,5 @@
-export type FactoryFunc<T> = (item: Partial<T>) => T;
+export type RecPartial<T> = { [P in keyof T]?: RecPartial<T[P]> };
+export type FactoryFunc<T> = (item: RecPartial<T>) => T;
 
 export class Generator<T> {
   constructor(readonly func: (seq: number) => T) {}
@@ -20,11 +21,12 @@ export class Factory<T> {
     this.seqNum = 0;
   }
 
-  public build(item?: Partial<T>): T {
+  public build(item?: RecPartial<T>): T {
     this.seqNum++;
     const base = buildBase(this.seqNum, this.builder);
-    const v = Object.assign({}, base.value, item);
+    let v = Object.assign({}, base.value); //, item);
     if (item) {
+      v = Factory.recursivePartialOverride(v, item);
       const keys = Object.keys(item);
       for (const der of base.derived) {
         if (keys.indexOf(der.key) < 0) {
@@ -35,7 +37,30 @@ export class Factory<T> {
     return v;
   }
 
-  public buildList(count: number, item?: Partial<T>): T[] {
+  private static recursivePartialOverride<U>(x: U, y: RecPartial<U>): U {
+    if (y === undefined || y === null) return x;
+    const objProto = Object.getPrototypeOf({});
+    if (Object.getPrototypeOf(y) != objProto) return y as any;
+    let v = Object.assign({}, x);
+    let yKeys = Object.keys(y);
+    for (const key of Object.keys(v)) {
+      if (yKeys.indexOf(key) >= 0) {
+        const itemKeyVal = (y as any)[key];
+        if (typeof itemKeyVal === "object") {
+          const baseKeyVal = (v as any)[key];
+          (v as any)[key] = Factory.recursivePartialOverride(
+            baseKeyVal,
+            itemKeyVal
+          );
+        } else {
+          (v as any)[key] = itemKeyVal;
+        }
+      }
+    }
+    return v;
+  }
+
+  public buildList(count: number, item?: RecPartial<T>): T[] {
     const ts: T[] = Array(count); // allocate to correct size
     for (let i = 0; i < count; i++) {
       ts[i] = this.build(item);
@@ -43,7 +68,7 @@ export class Factory<T> {
     return ts;
   }
 
-  public extend(def: Partial<Builder<T>>): Factory<T> {
+  public extend(def: RecPartial<Builder<T>>): Factory<T> {
     const builder = Object.assign({}, this.builder, def);
     return new Factory(builder);
   }
