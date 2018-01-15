@@ -48,6 +48,13 @@ export class Factory<T> {
     return new Factory(builder);
   }
 
+  public combine<U>(other: Factory<U>): Factory<T & U> {
+    const builder = Object.assign({}, this.builder, other.builder) as Builder<
+      T & U
+    >;
+    return new Factory<T & U>(builder);
+  }
+
   public withDerivation<KOut extends keyof T>(
     kOut: KOut,
     f: (v1: T, seq: number) => T[KOut]
