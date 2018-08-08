@@ -4,7 +4,7 @@ A library to ease creation of factories for test data for Typescript
 
 Given an interface or type definition, create a factory for generating test data. Values for each key may be defaulted or be calculated each time based on a sequence number and the values for other keys.
 
-Version 0.3.1 introduces a new set of async factory methods for cases where asynchronicity is required to generate values.
+Version 0.3.2 introduces a new set of async factory methods for cases where asynchronicity is required to generate values.
 
 ## Example
 

@@ -1,7 +1,7 @@
 import * as Async from "./async";
 export { Async };
 
-import * as Sync from "./async";
+import * as Sync from "./sync";
 export { Sync };
 
 // for now, for backwards compat
