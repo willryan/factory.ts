@@ -29,6 +29,7 @@ build/Release
 # Dependency directories
 node_modules
 jspm_packages
+yarn_packages
 
 # Optional npm cache directory
 .npm
@@ -41,3 +42,4 @@ tmp/
 
 # VS Code settings
 .vscode/
+

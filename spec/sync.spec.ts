@@ -1,6 +1,6 @@
-import * as Factory from "../src";
+import * as Factory from "../src/sync";
 import { expect } from "chai";
-import { makeFactory } from "../src";
+import { makeFactory } from "../src/sync";
 
 interface ParentType {
   name: string;

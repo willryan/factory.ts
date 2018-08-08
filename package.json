@@ -1,14 +1,11 @@
 {
   "name": "factory.ts",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "license": "MIT",
-  "description":
-    "A Typescript test data factory similar to factory_girl and rosie",
+  "description": "A Typescript test data factory similar to factory_bot and rosie",
   "scripts": {
-    "test":
-      "NODE_ENV=test mocha --require spec/setup.js --require ts-node/register",
-    "testAll":
-      "NODE_ENV=test mocha --require spec/setup.js --require ts-node/register 'spec/**/*.spec.ts*'"
+    "test": "NODE_ENV=test mocha --require spec/setup.js --require ts-node/register",
+    "testAll": "NODE_ENV=test mocha --require spec/setup.js --require ts-node/register 'spec/**/*.spec.ts*'"
   },
   "repository": "https://github.com/willryan/factory.ts",
   "engines": {
@@ -31,9 +28,9 @@
     "jsdom": "^9.8.3",
     "mocha": "^3.1.2",
     "mocha-junit-reporter": "^1.12.1",
-    "ts-loader": "^0.9.5",
-    "ts-node": "^2.1.0",
-    "typescript": "2.1.6",
+    "ts-loader": "^4.4.2",
+    "ts-node": "^7.0.0",
+    "typescript": "2.9.2",
     "webpack": "^1.14.0",
     "webpack-dev-server": "^1.16.2"
   }
