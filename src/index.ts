@@ -4,6 +4,9 @@ export { Async };
 import * as Sync from "./sync";
 export { Sync };
 
+import * as Pipeline from "./pipeline";
+export { Pipeline };
+
 export { RecPartial } from "./shared";
 
 // for now, for backwards compat

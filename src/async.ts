@@ -109,7 +109,7 @@ export class Factory<T> implements IFactory<T, T> {
     return new Factory<T & U>(builder);
   }
 
-  public transform<U>(fn: (t: T) => U | Promise<U>): IFactory<T, U> {
+  public transform<U>(fn: (t: T) => U | Promise<U>): TransformFactory<T, U> {
     return new TransformFactory(this, fn);
   }
 

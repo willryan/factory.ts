@@ -25,7 +25,7 @@ export declare class Factory<T> implements IFactory<T, T> {
     buildList(count: number, item?: RecPartial<T>): Promise<T[]>;
     extend(def: RecPartial<Builder<T>>): Factory<T>;
     combine<U>(other: Factory<U>): Factory<T & U>;
-    transform<U>(fn: (t: T) => U | Promise<U>): IFactory<T, U>;
+    transform<U>(fn: (t: T) => U | Promise<U>): TransformFactory<T, U>;
     withDerivation<KOut extends keyof T>(kOut: KOut, f: (v1: T, seq: number) => T[KOut] | Promise<T[KOut]>): Factory<T>;
     withDerivation1<K1 extends keyof T, KOut extends keyof T>(kInput: [K1], kOut: KOut, f: (v1: T[K1], seq: number) => T[KOut] | Promise<T[KOut]>): Factory<T>;
     withDerivation2<K1 extends keyof T, K2 extends keyof T, KOut extends keyof T>(kInput: [K1, K2], kOut: KOut, f: (v1: T[K1], v2: T[K2], seq: number) => T[KOut] | Promise<T[KOut]>): Factory<T>;

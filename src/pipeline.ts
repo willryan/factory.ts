@@ -13,7 +13,7 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
   }
 
   //add<T,U>(factory: Async.IFactory<T,U> | Async.FactoryFunc<T,U>, val: Parti (p:P) => Partial<T>)
-  public addValue<P2 extends Object>(
+  public addValues<P2 extends Object>(
     val: MaybePromiseFunc<P, P2>
   ): Pipeline<P & P2> {
     return new Pipeline(
@@ -27,10 +27,14 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
     );
   }
 
+  // NOTE: want to combine all addFactory() methods, but
+  // Typescript and or ts-node seems to have problems
+  // also want use object { key: partial } instead
+  // but can't get the types right
   public addFactoryFunc<T, U, K extends string>(
     factory: Async.FactoryFunc<T, U>,
     key: K,
-    partial?: PipePartial<P, T>
+    partial: PipePartial<P, T>
   ): Pipeline<P & { [k in K]: U }> {
     return new Pipeline(
       this.current.then(async c => {
@@ -49,10 +53,10 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
     );
   }
 
-  public addRegularFactory<T, K extends string>(
+  public addFactory<T, K extends string>(
     factory: Async.Factory<T>,
     key: K,
-    partial?: PipePartial<P, T>
+    partial: PipePartial<P, T>
   ): Pipeline<P & { [k in K]: T }> {
     return this.addFactoryFunc(v => factory.build(v), key, partial);
   }
@@ -60,28 +64,9 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
   public addTxFactory<T, U, K extends string>(
     factory: Async.TransformFactory<T, U>,
     key: K,
-    partial?: PipePartial<P, T>
+    partial: PipePartial<P, T>
   ): Pipeline<P & { [k in K]: U }> {
     return this.addFactoryFunc(v => factory.build(v), key, partial);
-  }
-  public addFactory<T, U, K extends string>(
-    factory:
-      | Async.FactoryFunc<T, U>
-      | Async.Factory<U>
-      | Async.TransformFactory<T, U>,
-    key: K,
-    partial?: PipePartial<P, T>
-  ): Pipeline<P & { [k in K]: U }> {
-    if (typeof factory === "function") {
-      return this.addFactoryFunc<T, U, K>(factory, key, partial);
-    } else if (factory.constructor === Async.Factory) {
-      return this.addRegularFactory(factory as Async.Factory<U>, key, partial);
-    }
-    return this.addTxFactory(
-      factory as Async.TransformFactory<T, U>,
-      key,
-      partial
-    );
   }
 
   then<TResult1 = P, TResult2 = never>(
