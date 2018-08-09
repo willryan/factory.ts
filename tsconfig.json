@@ -1,10 +1,12 @@
 {
-  "version": "2.1.6",
   "compilerOptions": {
     "declaration": true,
     "outDir": "lib",
     "module": "commonjs",
     "target": "es2015",
+    "lib": [
+      "es2015"
+    ],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "noImplicitAny": true,
@@ -14,7 +16,7 @@
     "strictNullChecks": true,
     "baseUrl": "./",
     "paths": {
-      "*" : [ "*"]
+      "*": ["*"]
     }
   },
   "files": [

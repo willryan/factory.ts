@@ -4,9 +4,10 @@ export { Async };
 import * as Sync from "./sync";
 export { Sync };
 
+export { RecPartial } from "./shared";
+
 // for now, for backwards compat
 export {
-  RecPartial,
   FactoryFunc,
   Generator,
   Derived,

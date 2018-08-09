@@ -1,11 +1,16 @@
-export type RecPartial<T> = { [P in keyof T]?: RecPartial<T[P]> };
-export type FactoryFunc<T> = (item: RecPartial<T>) => T | Promise<T>;
+import { RecPartial } from "./shared";
 
-function isPromise<T extends Object>(t: T | Promise<T>): t is Promise<any> {
+export type FactoryFunc<T, U = T> = (item?: RecPartial<T>) => Promise<U>;
+export type ListFactoryFunc<T, U = T> = (
+  count: number,
+  item?: RecPartial<T>
+) => Promise<U[]>;
+
+function isPromise<T extends Object>(t: T | Promise<T>): t is Promise<T> {
   return typeof (t as any)["then"] === "function";
 }
 
-function lift<T>(t: T | Promise<T>): Promise<T> {
+export function lift<T>(t: T | Promise<T>): Promise<T> {
   if (isPromise(t)) {
     return t;
   } else {
@@ -32,8 +37,8 @@ export class Derived<TOwner, TProperty> {
 }
 
 export interface IFactory<T, U> {
-  build(item?: RecPartial<T>): Promise<U>;
-  buildList(count: number, item?: RecPartial<T>): Promise<U[]>;
+  build: FactoryFunc<T, U>;
+  buildList: ListFactoryFunc<T, U>;
 }
 
 export class Factory<T> implements IFactory<T, T> {

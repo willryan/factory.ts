@@ -1,5 +1,6 @@
-export type RecPartial<T> = { [P in keyof T]?: RecPartial<T[P]> };
-export type FactoryFunc<T> = (item: RecPartial<T>) => T;
+import { RecPartial } from "./shared";
+
+export type FactoryFunc<T> = (item?: RecPartial<T>) => T;
 
 export class Generator<T> {
   constructor(readonly func: (seq: number) => T) {}

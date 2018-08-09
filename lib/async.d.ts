@@ -1,7 +1,7 @@
-export declare type RecPartial<T> = {
-    [P in keyof T]?: RecPartial<T[P]>;
-};
-export declare type FactoryFunc<T> = (item: RecPartial<T>) => T | Promise<T>;
+import { RecPartial } from "./shared";
+export declare type FactoryFunc<T, U = T> = (item?: RecPartial<T>) => Promise<U>;
+export declare type ListFactoryFunc<T, U = T> = (count: number, item?: RecPartial<T>) => Promise<U[]>;
+export declare function lift<T>(t: T | Promise<T>): Promise<T>;
 export declare class Generator<T> {
     readonly func: (seq: number) => T | Promise<T>;
     constructor(func: (seq: number) => T | Promise<T>);
@@ -13,8 +13,8 @@ export declare class Derived<TOwner, TProperty> {
     build(owner: TOwner, seq: number): Promise<TProperty>;
 }
 export interface IFactory<T, U> {
-    build(item?: RecPartial<T>): Promise<U>;
-    buildList(count: number, item?: RecPartial<T>): Promise<U[]>;
+    build: FactoryFunc<T, U>;
+    buildList: ListFactoryFunc<T, U>;
 }
 export declare class Factory<T> implements IFactory<T, T> {
     readonly builder: Builder<T>;
