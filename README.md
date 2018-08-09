@@ -121,3 +121,18 @@ Async factories support all the same methods as sync factories, but you can also
 ### `transform()`
 
 Async factories also have a `transform()` method which can take a function that goes from `T => U` or from `T => Promise<U>`. This creates an object with the factory interface for building only, and is meant to be a "last step" transform. The idea is that the output of the last step may be a different type. For example, you may have an Unsaved and a Saved type for database records, so you can pass in your `insert(u: Unsaved): Promise<Saved>` method and get a factory which will asynchronously build a persisted `Saved` object.
+
+### Pipelines
+
+Async factories can be put into pipeline, where at each step in the pipeline you add one or more top-level keys to an object meant to hold your test data.
+This feature is designed to help with bootstrapping complex data structures for tests (e.g. several database records).
+
+Each step in the pipeline can accept:
+
+- a raw object with keys and values to merge into the pipeline data, OR
+- a function (optionally asynchronous) returning the same, and which can depend on all data in the pipeline up to that point, OR
+- an Async Factory (or TransformFactory or FactoryFunc), along with:
+  - a partial for the factory, OR
+  - a function (optionally synchronous) returning a partial for the factory
+
+As noted above, each step can depend on the previous steps' data to make its contribution, and each step can be asynchronous. In the end you just await on the pipeline, and through the magic of Typescript you have a type-safe object whose keys are all the values you want to use in your test.
