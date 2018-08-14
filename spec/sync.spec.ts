@@ -146,7 +146,7 @@ describe("factories build stuff", () => {
       aisle: {
         name: string;
         typeOfFood: string;
-        budget: number;
+        budget?: number;
         tags: string[];
       };
     }
@@ -155,7 +155,6 @@ describe("factories build stuff", () => {
       aisle: {
         name: "Junk Food Aisle",
         typeOfFood: "Junk Food",
-        budget: 3000,
         tags: ["a", "b", "c"]
       }
     });

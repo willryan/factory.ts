@@ -1,4 +1,5 @@
-import * as Factory from "../src/async";
+import * as Async from "../src/async";
+import * as Sync from "../src/sync";
 import { expect } from "chai";
 import { makeFactory } from "../src/async";
 
@@ -15,14 +16,14 @@ interface ChildType {
 }
 
 describe("async factories build stuff", () => {
-  const childFactory = Factory.makeFactory<ChildType>({
+  const childFactory = Async.makeFactory<ChildType>({
     name: "Kid",
     grade: 1
   });
-  const parentFactory = Factory.makeFactory<ParentType>({
+  const parentFactory = Async.makeFactory<ParentType>({
     name: "Parent",
-    birthday: Factory.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
-    children: Factory.each(() => []),
+    birthday: Async.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
+    children: Async.each(() => []),
     spouse: null
   });
   it("makes an object from a factory", async () => {
@@ -51,10 +52,10 @@ describe("async factories build stuff", () => {
     expect(susan.children.map(c => c.name)).to.deep.eq(["Jimmy", "Alice"]);
   });
   it("can refer to other factories", async () => {
-    const parentWithKidsFactory = Factory.makeFactory<ParentType>({
+    const parentWithKidsFactory = Async.makeFactory<ParentType>({
       name: "Timothy",
-      birthday: Factory.each(i => new Date(`2017/05/${i}`)),
-      children: Factory.each(async () => [
+      birthday: Async.each(i => new Date(`2017/05/${i}`)),
+      children: Async.each(async () => [
         await childFactory.build({ name: "Bobby" }),
         await childFactory.build({ name: "Jane" })
       ]),
@@ -67,7 +68,7 @@ describe("async factories build stuff", () => {
   });
   it("can extend existing factories", async () => {
     const geniusFactory = childFactory.extend({
-      grade: Factory.each(i => {
+      grade: Async.each(i => {
         return new Promise((res, _rej) => {
           setTimeout(() => {
             res(i * 2);
@@ -86,7 +87,7 @@ describe("async factories build stuff", () => {
       readonly lastName: string;
       readonly fullName: string;
     }
-    const personFactory = Factory.makeFactory<Person>({
+    const personFactory = Async.makeFactory<Person>({
       firstName: "",
       lastName: "Bond",
       fullName: ""
@@ -105,8 +106,8 @@ describe("async factories build stuff", () => {
   });
   it("can combine factories", async () => {
     const timeStamps = makeFactory({
-      createdAt: Factory.each(() => new Date()),
-      updatedAt: Factory.each(() => new Date())
+      createdAt: Async.each(async () => new Date()),
+      updatedAt: Async.each(async () => new Date())
     });
     const softDelete = makeFactory({
       isDeleted: false
@@ -123,12 +124,12 @@ describe("async factories build stuff", () => {
       updatedAt: Date;
       isDeleted: boolean;
     }
-    const postFactory: Factory.Factory<Post> = makeFactory({
+    const postFactory: Async.Factory<Post> = makeFactory({
       content: "lorem ipsum"
     })
       .combine(timeStamps)
       .combine(softDelete);
-    const userFactory: Factory.Factory<User> = makeFactory({
+    const userFactory: Async.Factory<User> = makeFactory({
       email: "test@user.com"
     })
       .combine(timeStamps)
@@ -157,7 +158,7 @@ describe("async factories build stuff", () => {
       };
     }
 
-    const groceryStoreFactory = Factory.makeFactory<IGroceryStore>({
+    const groceryStoreFactory = Async.makeFactory<IGroceryStore>({
       aisle: {
         name: "Junk Food Aisle",
         typeOfFood: "Junk Food",
@@ -213,10 +214,10 @@ describe("async factories build stuff", () => {
       spouse: Saved<SavedParentType> | null;
     }
     const dbChildFactory = childFactory.transform(saveRecord);
-    const savedParentFactory = Factory.makeFactory<SavedParentType>({
+    const savedParentFactory = Async.makeFactory<SavedParentType>({
       name: "Parent",
-      birthday: Factory.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
-      children: Factory.each(() => []),
+      birthday: Async.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
+      children: Async.each(() => []),
       spouse: null
     });
     const dbParentFactory = savedParentFactory.transform(saveRecord);
@@ -239,5 +240,16 @@ describe("async factories build stuff", () => {
     expect(ted.spouse!.id).to.be.greaterThan(0);
     expect(ted.children[0]!.name).to.eq("Billy");
     expect(ted.children[1]!.name).to.eq("Amy");
+  });
+  it("can create async factories from sync builders", async () => {
+    const parentFactory = Async.makeFactoryFromSync<ParentType>({
+      name: "Parent",
+      birthday: Sync.each(i => new Date(`2017/05/${i}`)),
+      children: Sync.each(() => []),
+      spouse: null
+    });
+    const susan = await parentFactory.build({ name: "Susan" });
+    expect(susan.name).to.equal("Susan");
+    expect(susan.birthday.getTime()).to.equal(new Date("2017/05/01").getTime());
   });
 });

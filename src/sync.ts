@@ -31,7 +31,7 @@ export class Factory<T> {
       const keys = Object.keys(item);
       for (const der of base.derived) {
         if (keys.indexOf(der.key) < 0) {
-          (v as any)[der.key] = (der.derived as any).build(v, this.seqNum);
+          (v as any)[der.key] = der.derived.build(v, this.seqNum);
         }
       }
     }
@@ -44,7 +44,8 @@ export class Factory<T> {
     if (Object.getPrototypeOf(y) != objProto) return y as any;
     let v = Object.assign({}, x);
     let yKeys = Object.keys(y);
-    for (const key of Object.keys(v)) {
+    const allKeys = uniq(Object.keys(v).concat(yKeys));
+    for (const key of allKeys) {
       if (yKeys.indexOf(key) >= 0) {
         const itemKeyVal = (y as any)[key];
         if (typeof itemKeyVal === "object") {
@@ -191,7 +192,7 @@ export function each<T>(f: (seqNum: number) => T): Generator<T> {
 }
 
 interface BaseDerived {
-  derived: Function;
+  derived: Derived<any, any>;
   key: string;
 }
 
@@ -221,4 +222,14 @@ function buildBase<T>(seqNum: number, builder: Builder<T>): BaseBuild<T> {
 
 export function makeFactory<T>(builder: Builder<T>): Factory<T> {
   return new Factory(builder);
+}
+
+function uniq<T>(ts: Array<T>): Array<T> {
+  const out: T[] = [];
+  for (const v of ts) {
+    if (out.indexOf(v) < 0) {
+      out.push(v);
+    }
+  }
+  return out;
 }

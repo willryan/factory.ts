@@ -1,4 +1,6 @@
 import { RecPartial } from "./shared";
+import * as Sync from "./sync";
+import { Async } from ".";
 
 export type FactoryFunc<T, U = T> = (item?: RecPartial<T>) => Promise<U>;
 export type ListFactoryFunc<T, U = T> = (
@@ -56,10 +58,7 @@ export class Factory<T> implements IFactory<T, T> {
       const keys = Object.keys(item);
       for (const der of base.derived) {
         if (keys.indexOf(der.key) < 0) {
-          (v as any)[der.key] = await (der.derived as any).build(
-            v,
-            this.seqNum
-          );
+          (v as any)[der.key] = await der.derived.build(v, this.seqNum);
         }
       }
     }
@@ -250,7 +249,7 @@ export function each<T>(f: (seqNum: number) => T | Promise<T>): Generator<T> {
 }
 
 interface BaseDerived {
-  derived: Function;
+  derived: Derived<any, any>;
   key: string;
 }
 
@@ -276,6 +275,10 @@ async function buildBase<T>(
         value = await (v as Generator<any>).build(seqNum);
       } else if (v.constructor == Derived) {
         derived.push({ key, derived: v });
+      } else if (v.constructor === Sync.Generator) {
+        value = (v as Sync.Generator<any>).build(seqNum);
+      } else if (v.constructor == Sync.Derived) {
+        derived.push({ key, derived: new Derived(v.func) });
       }
     }
     t[key] = value;
@@ -285,4 +288,8 @@ async function buildBase<T>(
 
 export function makeFactory<T>(builder: Builder<T>): Factory<T> {
   return new Factory(builder);
+}
+
+export function makeFactoryFromSync<T>(builder: Sync.Builder<T>): Factory<T> {
+  return new Factory(builder as Async.Builder<T>);
 }
