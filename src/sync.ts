@@ -23,7 +23,6 @@ export class Factory<T> {
   }
 
   public build(item?: RecPartial<T>): T {
-    this.seqNum++;
     const base = buildBase(this.seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
     if (item) {
@@ -35,6 +34,7 @@ export class Factory<T> {
         }
       }
     }
+    this.seqNum++;
     return v;
   }
 
