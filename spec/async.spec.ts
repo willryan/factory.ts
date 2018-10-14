@@ -4,14 +4,14 @@ import { expect } from "chai";
 import { makeFactory } from "../src/async";
 
 interface ParentType {
-  name: string;
+  name: string | null;
   birthday: Date;
   children: ChildType[];
   spouse: ParentType | null;
 }
 
 interface ChildType {
-  name: string;
+  name: string | null;
   grade: number;
 }
 
@@ -35,6 +35,11 @@ describe("async factories build stuff", () => {
     const jimmy = await childFactory.build();
     expect(jimmy.name).to.eq("Kid");
     expect(jimmy.grade).to.eq(1);
+  });
+  it("makes an object with default field explicitly set to null", async () => {
+    const anon = await childFactory.build({ name: null });
+    expect(anon.name).to.be.null;
+    expect(anon.grade).to.eq(1);
   });
   it("can make use of sequence #", async () => {
     const susan = await parentFactory.build({ name: "Susan" });

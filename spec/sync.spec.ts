@@ -10,7 +10,7 @@ interface ParentType {
 }
 
 interface ChildType {
-  name: string;
+  name: string | null;
   grade: number;
 }
 
@@ -34,6 +34,11 @@ describe("factories build stuff", () => {
     const jimmy = childFactory.build();
     expect(jimmy.name).to.eq("Kid");
     expect(jimmy.grade).to.eq(1);
+  });
+  it("makes an object with default field explicitly set to null", () => {
+    const anon = childFactory.build({ name: null });
+    expect(anon.name).to.be.null;
+    expect(anon.grade).to.eq(1);
   });
   it("can make use of sequence #", () => {
     const susan = parentFactory.build({ name: "Susan" });
