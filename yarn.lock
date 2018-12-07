@@ -2,18 +2,10 @@
 # yarn lockfile v1
 
 
-"@types/chai@^3.4.34":
-  version "3.4.35"
-  resolved "@types-chai-3.4.35.tgz#e8d65f83492d2944f816fc620741821c28a8c900"
-
 "@types/jest@^20.0.6":
   version "20.0.8"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-20.0.8.tgz#7f8c97f73d20d3bf5448fbe33661a342002b5954"
   integrity sha512-+vFMPCwOffrTy685X9Kj+Iz83I56Q8j0JK6xvsm6TA5qxbtPUJZcXtJY05WMGlhCKp/9qbpRCwyOp6GkMuyuLg==
-
-"@types/mocha@^2.2.32":
-  version "2.2.39"
-  resolved "@types-mocha-2.2.39.tgz#f68d63db8b69c38e9558b4073525cf96c4f7a829"
 
 "@types/node@^7.0.4":
   version "7.0.5"
@@ -174,10 +166,6 @@ assert@^1.1.1:
   resolved assert-1.4.1.tgz#99912d591836b5a6f5b345c0f07eefc08fc65d91
   dependencies:
     util "0.10.3"
-
-assertion-error@^1.0.1:
-  version "1.0.2"
-  resolved assertion-error-1.0.2.tgz#13ca515d86206da0bac66e834dd397d87581094c
 
 assign-symbols@^1.0.0:
   version "1.0.0"
@@ -976,10 +964,6 @@ browser-resolve@^1.11.2:
   dependencies:
     resolve "1.1.7"
 
-browser-stdout@1.3.0:
-  version "1.3.0"
-  resolved browser-stdout-1.3.0.tgz#f351d32969d32fa5d7a5567154263d928ae3bd1f
-
 browserify-aes@0.4.0:
   version "0.4.0"
   resolved browserify-aes-0.4.0.tgz#067149b668df31c4b58533e02d01e806d8608e2c
@@ -1078,14 +1062,6 @@ center-align@^0.1.1:
     align-text "^0.1.3"
     lazy-cache "^1.0.3"
 
-chai@^3.5.0:
-  version "3.5.0"
-  resolved chai-3.5.0.tgz#4d02637b067fe958bdbfdd3a40ec56fef7373247
-  dependencies:
-    assertion-error "^1.0.1"
-    deep-eql "^0.1.3"
-    type-detect "^1.0.0"
-
 chalk@^1.1.0, chalk@^1.1.1, chalk@^1.1.3:
   version "1.1.3"
   resolved chalk-1.1.3.tgz#a8115c55e4a702fe4d150abd3872822a7e09fc98
@@ -1103,10 +1079,6 @@ chalk@^2.3.0:
     ansi-styles "^3.2.1"
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
-
-charenc@~0.0.1:
-  version "0.0.2"
-  resolved charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667
 
 chokidar@^1.0.0:
   version "1.6.1"
@@ -1185,15 +1157,15 @@ combined-stream@^1.0.5, combined-stream@~1.0.5:
   dependencies:
     delayed-stream "~1.0.0"
 
-commander@2.9.0, commander@^2.9.0:
+commander@^2.12.1:
+  version "2.18.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-2.18.0.tgz#2bf063ddee7c7891176981a2cc798e5754bc6970"
+
+commander@^2.9.0:
   version "2.9.0"
   resolved commander-2.9.0.tgz#9c99094176e12240cb22d6c5146098400fe0f7d4
   dependencies:
     graceful-readlink ">= 1.0.0"
-
-commander@^2.12.1:
-  version "2.18.0"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-2.18.0.tgz#2bf063ddee7c7891176981a2cc798e5754bc6970"
 
 commander@~2.17.1:
   version "2.17.1"
@@ -1304,10 +1276,6 @@ cross-spawn@^5.0.1:
     shebang-command "^1.2.0"
     which "^1.2.9"
 
-crypt@~0.0.1:
-  version "0.0.2"
-  resolved crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b
-
 cryptiles@2.x.x:
   version "2.0.5"
   resolved cryptiles-2.0.5.tgz#3bdfecdc608147c1c67202fa291e7dca59eaa3b8
@@ -1343,12 +1311,6 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b
 
-debug@2.2.0, debug@~2.2.0:
-  version "2.2.0"
-  resolved debug-2.2.0.tgz#f87057e995b1a1f6ae6a4960664137bc56f039da
-  dependencies:
-    ms "0.7.1"
-
 debug@^2.1.1, debug@^2.2.0:
   version "2.6.1"
   resolved debug-2.6.1.tgz#79855090ba2c4e3115cc7d8769491d58f0491351
@@ -1369,6 +1331,12 @@ debug@^3.1.0:
   dependencies:
     ms "^2.1.1"
 
+debug@~2.2.0:
+  version "2.2.0"
+  resolved debug-2.2.0.tgz#f87057e995b1a1f6ae6a4960664137bc56f039da
+  dependencies:
+    ms "0.7.1"
+
 decamelize@^1.0.0, decamelize@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
@@ -1377,12 +1345,6 @@ decamelize@^1.0.0, decamelize@^1.1.1:
 decode-uri-component@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
-
-deep-eql@^0.1.3:
-  version "0.1.3"
-  resolved deep-eql-0.1.3.tgz#ef558acab8de25206cd713906d74e56930eb69f2
-  dependencies:
-    type-detect "0.1.1"
 
 deep-extend@~0.4.0:
   version "0.4.1"
@@ -1439,10 +1401,6 @@ detect-indent@^4.0.0:
   resolved detect-indent-4.0.0.tgz#f76d064352cdf43a1cb6ce619c4ee3a9475de208
   dependencies:
     repeating "^2.0.0"
-
-diff@1.4.0:
-  version "1.4.0"
-  resolved diff-1.4.0.tgz#7f28d2eb9ee7b15a97efd89ce63dcfdaa3ccbabf
 
 diff@^3.1.0:
   version "3.2.0"
@@ -1514,7 +1472,7 @@ escape-html@~1.0.3:
   version "1.0.3"
   resolved escape-html-1.0.3.tgz#0258eae4d3d0c0974de1c169188ef0051d1d1988
 
-escape-string-regexp@1.0.5, escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.5:
+escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.5:
   version "1.0.5"
   resolved escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4
 
@@ -1904,17 +1862,6 @@ glob-parent@^2.0.0:
   dependencies:
     is-glob "^2.0.0"
 
-glob@7.0.5, glob@^7.0.5:
-  version "7.0.5"
-  resolved glob-7.0.5.tgz#b4202a69099bbb4d292a7c1b95b6682b67ebdc95
-  dependencies:
-    fs.realpath "^1.0.0"
-    inflight "^1.0.4"
-    inherits "2"
-    minimatch "^3.0.2"
-    once "^1.3.0"
-    path-is-absolute "^1.0.0"
-
 glob@^7.0.3, glob@^7.1.1:
   version "7.1.3"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.3.tgz#3960832d3f1574108342dafd3a67b332c0969df1"
@@ -1923,6 +1870,17 @@ glob@^7.0.3, glob@^7.1.1:
     inflight "^1.0.4"
     inherits "2"
     minimatch "^3.0.4"
+    once "^1.3.0"
+    path-is-absolute "^1.0.0"
+
+glob@^7.0.5:
+  version "7.0.5"
+  resolved glob-7.0.5.tgz#b4202a69099bbb4d292a7c1b95b6682b67ebdc95
+  dependencies:
+    fs.realpath "^1.0.0"
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "^3.0.2"
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
@@ -1947,10 +1905,6 @@ graceful-fs@^4.1.2:
 "graceful-readlink@>= 1.0.0":
   version "1.0.1"
   resolved graceful-readlink-1.0.1.tgz#4cafad76bc62f02fa039b2f94e9a3dd3a391a725
-
-growl@1.9.2:
-  version "1.9.2"
-  resolved growl-1.9.2.tgz#0ea7743715db8d8de2c5ede1775e1b45ac85c02f
 
 growly@^1.3.0:
   version "1.3.0"
@@ -2169,7 +2123,7 @@ is-binary-path@^1.0.0:
   dependencies:
     binary-extensions "^1.0.0"
 
-is-buffer@^1.0.2, is-buffer@~1.1.1:
+is-buffer@^1.0.2:
   version "1.1.4"
   resolved is-buffer-1.1.4.tgz#cfc86ccd5dc5a52fa80489111c6920c457e2d98b
 
@@ -2761,7 +2715,7 @@ json-stringify-safe@~5.0.1:
   version "5.0.1"
   resolved json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb
 
-json3@3.3.2, json3@^3.3.2:
+json3@^3.3.2:
   version "3.3.2"
   resolved json3-3.3.2.tgz#3c0434743df93e2f5c42aee7b19bcb483575f4e1
 
@@ -2888,53 +2842,6 @@ locate-path@^2.0.0:
     p-locate "^2.0.0"
     path-exists "^3.0.0"
 
-lodash._baseassign@^3.0.0:
-  version "3.2.0"
-  resolved lodash._baseassign-3.2.0.tgz#8c38a099500f215ad09e59f1722fd0c52bfe0a4e
-  dependencies:
-    lodash._basecopy "^3.0.0"
-    lodash.keys "^3.0.0"
-
-lodash._basecopy@^3.0.0:
-  version "3.0.1"
-  resolved lodash._basecopy-3.0.1.tgz#8da0e6a876cf344c0ad8a54882111dd3c5c7ca36
-
-lodash._basecreate@^3.0.0:
-  version "3.0.3"
-  resolved lodash._basecreate-3.0.3.tgz#1bc661614daa7fc311b7d03bf16806a0213cf821
-
-lodash._getnative@^3.0.0:
-  version "3.9.1"
-  resolved lodash._getnative-3.9.1.tgz#570bc7dede46d61cdcde687d65d3eecbaa3aaff5
-
-lodash._isiterateecall@^3.0.0:
-  version "3.0.9"
-  resolved lodash._isiterateecall-3.0.9.tgz#5203ad7ba425fae842460e696db9cf3e6aac057c
-
-lodash.create@3.1.1:
-  version "3.1.1"
-  resolved lodash.create-3.1.1.tgz#d7f2849f0dbda7e04682bb8cd72ab022461debe7
-  dependencies:
-    lodash._baseassign "^3.0.0"
-    lodash._basecreate "^3.0.0"
-    lodash._isiterateecall "^3.0.0"
-
-lodash.isarguments@^3.0.0:
-  version "3.1.0"
-  resolved lodash.isarguments-3.1.0.tgz#2f573d85c6a24289ff00663b491c1d338ff3458a
-
-lodash.isarray@^3.0.0:
-  version "3.0.4"
-  resolved lodash.isarray-3.0.4.tgz#79e4eb88c36a8122af86f844aa9bcd851b5fbb55
-
-lodash.keys@^3.0.0:
-  version "3.1.2"
-  resolved lodash.keys-3.1.2.tgz#4dbc0472b156be50a0b286855d1bd0b0c656098a
-  dependencies:
-    lodash._getnative "^3.0.0"
-    lodash.isarguments "^3.0.0"
-    lodash.isarray "^3.0.0"
-
 lodash@^4.17.10, lodash@^4.17.4:
   version "4.17.11"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
@@ -2982,14 +2889,6 @@ map-visit@^1.0.0:
   resolved "https://registry.yarnpkg.com/map-visit/-/map-visit-1.0.0.tgz#ecdca8f13144e660f1b5bd41f12f3479d98dfb8f"
   dependencies:
     object-visit "^1.0.0"
-
-md5@^2.1.0:
-  version "2.2.1"
-  resolved md5-2.2.1.tgz#53ab38d5fe3c8891ba465329ea23fac0540126f9
-  dependencies:
-    charenc "~0.0.1"
-    crypt "~0.0.1"
-    is-buffer "~1.1.1"
 
 media-typer@0.3.0:
   version "0.3.0"
@@ -3116,36 +3015,11 @@ mixin-deep@^1.2.0:
     for-in "^1.0.2"
     is-extendable "^1.0.1"
 
-mkdirp@0.5.1, "mkdirp@>=0.5 0", mkdirp@^0.5.1, mkdirp@~0.5.0, mkdirp@~0.5.1:
+"mkdirp@>=0.5 0", mkdirp@^0.5.1, mkdirp@~0.5.0, mkdirp@~0.5.1:
   version "0.5.1"
   resolved mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903
   dependencies:
     minimist "0.0.8"
-
-mocha-junit-reporter@^1.12.1:
-  version "1.13.0"
-  resolved mocha-junit-reporter-1.13.0.tgz#030db8c530b244667253b03861d4cd336f7e56c8
-  dependencies:
-    debug "^2.2.0"
-    md5 "^2.1.0"
-    mkdirp "~0.5.1"
-    xml "^1.0.0"
-
-mocha@^3.1.2:
-  version "3.2.0"
-  resolved mocha-3.2.0.tgz#7dc4f45e5088075171a68896814e6ae9eb7a85e3
-  dependencies:
-    browser-stdout "1.3.0"
-    commander "2.9.0"
-    debug "2.2.0"
-    diff "1.4.0"
-    escape-string-regexp "1.0.5"
-    glob "7.0.5"
-    growl "1.9.2"
-    json3 "3.3.2"
-    lodash.create "3.1.1"
-    mkdirp "0.5.1"
-    supports-color "3.1.2"
 
 ms@0.7.1:
   version "0.7.1"
@@ -4284,15 +4158,15 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a
 
-supports-color@3.1.2, supports-color@^3.1.0, supports-color@^3.1.1:
+supports-color@^2.0.0:
+  version "2.0.0"
+  resolved supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7
+
+supports-color@^3.1.0, supports-color@^3.1.1:
   version "3.1.2"
   resolved supports-color-3.1.2.tgz#72a262894d9d408b956ca05ff37b2ed8a6e2a2d5
   dependencies:
     has-flag "^1.0.0"
-
-supports-color@^2.0.0:
-  version "2.0.0"
-  resolved supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7
 
 supports-color@^3.1.2:
   version "3.2.3"
@@ -4499,14 +4373,6 @@ type-check@~0.3.2:
   resolved type-check-0.3.2.tgz#5884cab512cf1d355e3fb784f30804b2b520db72
   dependencies:
     prelude-ls "~1.1.2"
-
-type-detect@0.1.1:
-  version "0.1.1"
-  resolved type-detect-0.1.1.tgz#0ba5ec2a885640e470ea4e8505971900dac58822
-
-type-detect@^1.0.0:
-  version "1.0.0"
-  resolved type-detect-1.0.0.tgz#762217cc06db258ec48908a1298e8b95121e8ea2
 
 type-is@~1.6.14:
   version "1.6.14"
@@ -4811,10 +4677,6 @@ wrappy@1:
 xml-name-validator@^2.0.1:
   version "2.0.1"
   resolved xml-name-validator-2.0.1.tgz#4d8b8f1eccd3419aa362061becef515e1e559635
-
-xml@^1.0.0:
-  version "1.0.1"
-  resolved xml-1.0.1.tgz#78ba72020029c5bc87b8a81a3cfcd74b4a2fc1e5
 
 xtend@^4.0.0:
   version "4.0.1"
