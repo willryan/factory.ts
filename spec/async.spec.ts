@@ -24,7 +24,7 @@ describe("async factories build stuff", () => {
     birthday: Async.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
     children: Async.each(() => []),
     spouse: null
-  });
+  }, { startingSequenceNumber: 1 });
   it("makes an object from a factory", async () => {
     const jimmy = await childFactory.build({ name: "Jimmy" });
     expect(jimmy.name).toEqual("Jimmy");
@@ -70,7 +70,7 @@ describe("async factories build stuff", () => {
       grade: Async.each(i => {
         return new Promise((res, _rej) => {
           setTimeout(() => {
-            res(i * 2);
+            res((i + 1) * 2);
           }, 1);
         });
       })
@@ -87,13 +87,15 @@ describe("async factories build stuff", () => {
       readonly fullName: string;
     }
     const personFactory = Async.makeFactory<Person>({
-      firstName: "",
+      firstName: "Jules",
       lastName: "Bond",
       fullName: ""
     }).withDerivation("fullName", p => `${p.firstName} ${p.lastName}`);
     //.withDerivation2(['firstName','lastName'],'fullName', (fn, ln) => `${fn} ${ln}`);
     const bond = await personFactory.build({ firstName: "James" });
     expect(bond.fullName).toEqual("James Bond");
+    const bond2 = await personFactory.build();
+    expect(bond2.fullName).toEqual("Jules Bond");
   });
   it("can build a list of items", async () => {
     const children = await childFactory.buildList(3, { name: "Bruce" });
@@ -246,9 +248,21 @@ describe("async factories build stuff", () => {
       birthday: Sync.each(i => new Date(`2017/05/${i}`)),
       children: Sync.each(() => []),
       spouse: null
-    });
+    }, { startingSequenceNumber: 1 });
     const susan = await parentFactory.build({ name: "Susan" });
     expect(susan.name).toEqual("Susan");
     expect(susan.birthday.getTime()).toEqual(new Date("2017/05/01").getTime());
   });
+  it("allows custom seq num start", async () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+    }
+    const factoryA = Async.makeFactory<TypeA>({
+      foo: Async.each(n => n + 1),
+      bar: "hello",
+    }, { startingSequenceNumber: 3 });
+    const a = await factoryA.build();
+    expect(a.foo).toEqual(4);
+  })
 });

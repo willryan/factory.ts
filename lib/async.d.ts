@@ -1,5 +1,8 @@
 import { RecPartial } from "./shared";
 import * as Sync from "./sync";
+export interface AsyncFactoryConfig {
+    readonly startingSequenceNumber?: number;
+}
 export declare type FactoryFunc<T, U = T> = (item?: RecPartial<T>) => Promise<U>;
 export declare type ListFactoryFunc<T, U = T> = (count: number, item?: RecPartial<T>) => Promise<U[]>;
 export declare function lift<T>(t: T | Promise<T>): Promise<T>;
@@ -19,8 +22,9 @@ export interface IFactory<T, U> {
 }
 export declare class Factory<T> implements IFactory<T, T> {
     readonly builder: Builder<T>;
+    private readonly config;
     private seqNum;
-    constructor(builder: Builder<T>);
+    constructor(builder: Builder<T>, config: AsyncFactoryConfig | undefined);
     build(item?: RecPartial<T>): Promise<T>;
     private static recursivePartialOverride;
     buildList(count: number, item?: RecPartial<T>): Promise<T[]>;
@@ -46,5 +50,5 @@ export declare type Builder<T> = {
 };
 export declare function val<T>(val: T): Generator<T>;
 export declare function each<T>(f: (seqNum: number) => T | Promise<T>): Generator<T>;
-export declare function makeFactory<T>(builder: Builder<T>): Factory<T>;
-export declare function makeFactoryFromSync<T>(builder: Sync.Builder<T>): Factory<T>;
+export declare function makeFactory<T>(builder: Builder<T>, config?: AsyncFactoryConfig): Factory<T>;
+export declare function makeFactoryFromSync<T>(builder: Sync.Builder<T>, config?: AsyncFactoryConfig): Factory<T>;

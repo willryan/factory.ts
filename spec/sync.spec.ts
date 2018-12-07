@@ -210,7 +210,7 @@ describe("factories build stuff", () => {
     const factoryA = Factory.makeFactory<TypeA>({
       foo: Factory.each(n => n + 1),
       bar: "hello",
-    }, 3);
+    }, { startingSequenceNumber: 3 });
     const a = factoryA.build();
     expect(a.foo).toEqual(4);
   })

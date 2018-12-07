@@ -23,7 +23,7 @@ describe("pipelines", () => {
     birthday: Factory.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
     children: Factory.each(() => []),
     spouse: null
-  });
+  }, { startingSequenceNumber: 1 });
   const grandpaFactory = parentFactory.transform(parent => {
     return {
       ...parent,

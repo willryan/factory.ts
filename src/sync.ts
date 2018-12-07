@@ -1,5 +1,9 @@
 import { RecPartial } from "./shared";
 
+export interface SyncFactoryConfig {
+  readonly startingSequenceNumber?: number
+}
+
 export type FactoryFunc<T> = (item?: RecPartial<T>) => T;
 
 export class Generator<T> {
@@ -18,8 +22,8 @@ export class Derived<TOwner, TProperty> {
 
 export class Factory<T> {
   private seqNum: number;
-  constructor(readonly builder: Builder<T>, private startingSeqNum: number) {
-    this.seqNum = this.startingSeqNum;
+  constructor(readonly builder: Builder<T>, private readonly config: SyncFactoryConfig | undefined) {
+    this.seqNum = this.config && this.config.startingSequenceNumber || 0;
   }
 
   public build(item?: RecPartial<T>): T {
@@ -73,14 +77,14 @@ export class Factory<T> {
 
   public extend(def: RecPartial<Builder<T>>): Factory<T> {
     const builder = Object.assign({}, this.builder, def);
-    return new Factory(builder, this.startingSeqNum);
+    return new Factory(builder, this.config);
   }
 
   public combine<U>(other: Factory<U>): Factory<T & U> {
     const builder = Object.assign({}, this.builder, other.builder) as Builder<
       T & U
     >;
-    return new Factory<T & U>(builder, this.startingSeqNum);
+    return new Factory<T & U>(builder, this.config);
   }
 
   public withDerivation<KOut extends keyof T>(
@@ -221,8 +225,8 @@ function buildBase<T>(seqNum: number, builder: Builder<T>): BaseBuild<T> {
   return { value: t as T, derived };
 }
 
-export function makeFactory<T>(builder: Builder<T>, startingSeqNum: number = 0): Factory<T> {
-  return new Factory(builder, startingSeqNum);
+export function makeFactory<T>(builder: Builder<T>, config?: SyncFactoryConfig): Factory<T> {
+  return new Factory(builder, config);
 }
 
 function uniq<T>(ts: Array<T>): Array<T> {
