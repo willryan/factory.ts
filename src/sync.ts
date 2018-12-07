@@ -3,13 +3,13 @@ import { RecPartial } from "./shared";
 export type FactoryFunc<T> = (item?: RecPartial<T>) => T;
 
 export class Generator<T> {
-  constructor(readonly func: (seq: number) => T) {}
+  constructor(readonly func: (seq: number) => T) { }
   public build(seq: number): T {
     return this.func(seq);
   }
 }
 export class Derived<TOwner, TProperty> {
-  constructor(readonly func: (owner: TOwner, seq: number) => TProperty) {}
+  constructor(readonly func: (owner: TOwner, seq: number) => TProperty) { }
   public build(owner: TOwner, seq: number): TProperty {
     const ret = this.func(owner, seq);
     return ret;
@@ -24,15 +24,16 @@ export class Factory<T> {
 
   public build(item?: RecPartial<T>): T {
     this.seqNum++;
-    const base = buildBase(this.seqNum, this.builder);
+    const seqNum = this.seqNum;
+    const base = buildBase(seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
     if (item) {
       v = Factory.recursivePartialOverride(v, item);
-      const keys = Object.keys(item);
-      for (const der of base.derived) {
-        if (keys.indexOf(der.key) < 0) {
-          (v as any)[der.key] = der.derived.build(v, this.seqNum);
-        }
+    }
+    const keys = Object.keys(item || {});
+    for (const der of base.derived) {
+      if (keys.indexOf(der.key) < 0) {
+        (v as any)[der.key] = der.derived.build(v, seqNum);
       }
     }
     return v;
