@@ -18,12 +18,11 @@ export class Derived<TOwner, TProperty> {
 
 export class Factory<T> {
   private seqNum: number;
-  constructor(readonly builder: Builder<T>) {
-    this.seqNum = 0;
+  constructor(readonly builder: Builder<T>, private startingSeqNum: number) {
+    this.seqNum = this.startingSeqNum;
   }
 
   public build(item?: RecPartial<T>): T {
-    this.seqNum++;
     const seqNum = this.seqNum;
     const base = buildBase(seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
@@ -36,6 +35,7 @@ export class Factory<T> {
         (v as any)[der.key] = der.derived.build(v, seqNum);
       }
     }
+    this.seqNum++;
     return v;
   }
 
@@ -73,14 +73,14 @@ export class Factory<T> {
 
   public extend(def: RecPartial<Builder<T>>): Factory<T> {
     const builder = Object.assign({}, this.builder, def);
-    return new Factory(builder);
+    return new Factory(builder, this.startingSeqNum);
   }
 
   public combine<U>(other: Factory<U>): Factory<T & U> {
     const builder = Object.assign({}, this.builder, other.builder) as Builder<
       T & U
     >;
-    return new Factory<T & U>(builder);
+    return new Factory<T & U>(builder, this.startingSeqNum);
   }
 
   public withDerivation<KOut extends keyof T>(
@@ -221,8 +221,8 @@ function buildBase<T>(seqNum: number, builder: Builder<T>): BaseBuild<T> {
   return { value: t as T, derived };
 }
 
-export function makeFactory<T>(builder: Builder<T>): Factory<T> {
-  return new Factory(builder);
+export function makeFactory<T>(builder: Builder<T>, startingSeqNum: number = 0): Factory<T> {
+  return new Factory(builder, startingSeqNum);
 }
 
 function uniq<T>(ts: Array<T>): Array<T> {
