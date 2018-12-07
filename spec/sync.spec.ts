@@ -20,7 +20,7 @@ describe("factories build stuff", () => {
   });
   const parentFactory = Factory.makeFactory<ParentType>({
     name: "Parent",
-    birthday: Factory.each(i => new Date(`2017/05/${i}`)),
+    birthday: Factory.each(i => new Date(`2017/05/${i + 1}`)),
     children: Factory.each(() => []),
     spouse: null
   });
@@ -66,7 +66,7 @@ describe("factories build stuff", () => {
   });
   it("can extend existing factories", () => {
     const geniusFactory = childFactory.extend({
-      grade: Factory.each(i => i * 2)
+      grade: Factory.each(i => (i + 1) * 2)
     });
     const colin = geniusFactory.build({ name: "Colin" });
     expect(colin.grade).toEqual(2);
@@ -183,13 +183,13 @@ describe("factories build stuff", () => {
       recur: null
     })
     const factoryAPrime = factoryA.withDerivation("foo", (_v, n) => {
-      // inner: factoryA.build().foo should be 1, n should be 2
-      // outer: factoryA.build().foo should be 2, n should be 3
+      // inner: factoryA.build().foo should be 0, n should be 1
+      // outer: factoryA.build().foo should be 1, n should be 2
       const foo = factoryA.build().foo;
-      return foo * 100 + n; // 102 : 203
+      return foo * 100 + n; // 001 : 102
     }).withDerivation("bar", (v, n) => {
-      // inner: n should be 2, v.foo should be 102 -> "102:2"
-      // outer: n should be 3, v.foo should be 203 -> "203:3"
+      // inner: n should be 2, v.foo should be 001 -> "001:1"
+      // outer: n should be 3, v.foo should be 102 -> "102:2"
       return v.foo + ":" + n;
     });
     const justA = factoryAPrime.build({ foo: 99 }); // seq 1
@@ -197,9 +197,21 @@ describe("factories build stuff", () => {
     const aWithA = factoryAPrime.build({ // outer: starts on seq 3
       recur: factoryAPrime.build() // inner: starts on seq 2
     });
-    expect(aWithA.foo).toEqual(203);
-    expect(aWithA.bar).toEqual("203:3");
-    expect(aWithA.recur!.foo).toEqual(102);
-    expect(aWithA.recur!.bar).toEqual("102:2");
+    expect(aWithA.foo).toEqual(102);
+    expect(aWithA.bar).toEqual("102:2");
+    expect(aWithA.recur!.foo).toEqual(1);
+    expect(aWithA.recur!.bar).toEqual("1:1");
+  });
+  it("allows custom seq num start", () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+    }
+    const factoryA = Factory.makeFactory<TypeA>({
+      foo: Factory.each(n => n + 1),
+      bar: "hello",
+    }, 3);
+    const a = factoryA.build();
+    expect(a.foo).toEqual(4);
   })
 });
