@@ -2,11 +2,12 @@ import * as Async from "./async";
 import { RecPartial } from "./shared";
 
 type MaybePromise<T> = T | Promise<T>;
-type MaybePromiseFunc<P, T> = T | ((p: P) => MaybePromise<T>);
+type PromiseFunc<P, T> = ((p: P) => MaybePromise<T>);
+type MaybePromiseFunc<P, T> = T | PromiseFunc<P, T>;
 type PipePartial<P, T> = MaybePromiseFunc<P, RecPartial<T>>;
 
 export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
-  constructor(private current: Promise<P>) {}
+  constructor(private current: Promise<P>) { }
 
   static start() {
     return new Pipeline(Promise.resolve({}));
@@ -18,7 +19,7 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
   ): Pipeline<P & P2> {
     return new Pipeline(
       this.current.then(async c => {
-        const v = typeof val === "function" ? await Async.lift(val(c)) : val;
+        const v = typeof val === "function" ? await Async.lift((val as PromiseFunc<P, P2>)(c)) : val;
         return {
           ...(c as any),
           ...(v as any)
@@ -43,8 +44,8 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
             ? await Async.lift(partial(c))
             : partial;
         const val = await factory(p);
-        const newV: { [k: string]: U } = {};
-        newV[key] = val;
+        const newV: {} = {};
+        (newV as any)[key] = val;
         return {
           ...(c as any),
           ...newV

@@ -1,6 +1,5 @@
 import * as Async from "../src/async";
 import * as Sync from "../src/sync";
-import { expect } from "chai";
 import { makeFactory } from "../src/async";
 
 interface ParentType {
@@ -28,19 +27,19 @@ describe("async factories build stuff", () => {
   });
   it("makes an object from a factory", async () => {
     const jimmy = await childFactory.build({ name: "Jimmy" });
-    expect(jimmy.name).to.eq("Jimmy");
-    expect(jimmy.grade).to.eq(1);
+    expect(jimmy.name).toEqual("Jimmy");
+    expect(jimmy.grade).toEqual(1);
   });
   it("makes an object with default field from a factory", async () => {
     const jimmy = await childFactory.build();
-    expect(jimmy.name).to.eq("Kid");
-    expect(jimmy.grade).to.eq(1);
+    expect(jimmy.name).toEqual("Kid");
+    expect(jimmy.grade).toEqual(1);
   });
   it("can make use of sequence #", async () => {
     const susan = await parentFactory.build({ name: "Susan" });
     const edward = await parentFactory.build({ name: "Edward" });
-    expect(susan.birthday.getTime()).to.eq(new Date("2017/05/01").getTime());
-    expect(edward.birthday.getTime()).to.eq(new Date("2017/05/02").getTime());
+    expect(susan.birthday.getTime()).toEqual(new Date("2017/05/01").getTime());
+    expect(edward.birthday.getTime()).toEqual(new Date("2017/05/02").getTime());
   });
   it("can handle has many", async () => {
     const jimmy = await childFactory.build({ name: "Jimmy" });
@@ -49,7 +48,7 @@ describe("async factories build stuff", () => {
       name: "Susan",
       children: [jimmy, alice]
     });
-    expect(susan.children.map(c => c.name)).to.deep.eq(["Jimmy", "Alice"]);
+    expect(susan.children.map(c => c.name)).toEqual(["Jimmy", "Alice"]);
   });
   it("can refer to other factories", async () => {
     const parentWithKidsFactory = Async.makeFactory<ParentType>({
@@ -64,7 +63,7 @@ describe("async factories build stuff", () => {
     const tim = await parentWithKidsFactory.build({
       birthday: new Date("2017-02-01")
     });
-    expect(tim.children.map(c => c.name)).to.deep.eq(["Bobby", "Jane"]);
+    expect(tim.children.map(c => c.name)).toEqual(["Bobby", "Jane"]);
   });
   it("can extend existing factories", async () => {
     const geniusFactory = childFactory.extend({
@@ -77,9 +76,9 @@ describe("async factories build stuff", () => {
       })
     });
     const colin = await geniusFactory.build({ name: "Colin" });
-    expect(colin.grade).to.eq(2);
+    expect(colin.grade).toEqual(2);
     const albert = await geniusFactory.build({ name: "Albert" });
-    expect(albert.grade).to.eq(4);
+    expect(albert.grade).toEqual(4);
   });
   it("can derive one value based on another value", async () => {
     interface Person {
@@ -94,14 +93,14 @@ describe("async factories build stuff", () => {
     }).withDerivation("fullName", p => `${p.firstName} ${p.lastName}`);
     //.withDerivation2(['firstName','lastName'],'fullName', (fn, ln) => `${fn} ${ln}`);
     const bond = await personFactory.build({ firstName: "James" });
-    expect(bond.fullName).to.eq("James Bond");
+    expect(bond.fullName).toEqual("James Bond");
   });
   it("can build a list of items", async () => {
     const children = await childFactory.buildList(3, { name: "Bruce" });
-    expect(children.length).to.eq(3);
+    expect(children.length).toEqual(3);
     for (let child of children) {
-      expect(child.name).to.eq("Bruce");
-      expect(child.grade).to.eq(1);
+      expect(child.name).toEqual("Bruce");
+      expect(child.grade).toEqual(1);
     }
   });
   it("can combine factories", async () => {
@@ -138,15 +137,15 @@ describe("async factories build stuff", () => {
       content: "yadda yadda yadda",
       isDeleted: true
     });
-    expect(post.createdAt.getTime() - new Date().getTime()).to.be.lessThan(100);
-    expect(post.isDeleted).to.be.true;
+    expect(post.createdAt.getTime() - new Date().getTime()).toBeLessThan(100);
+    expect(post.isDeleted).toEqual(true);
     const user = await userFactory.build({
       email: "foo@bar.com",
       createdAt: new Date("2018/01/02")
     });
-    expect(user.createdAt.getTime()).to.eq(new Date("2018/01/02").getTime());
-    expect(post.updatedAt.getTime() - new Date().getTime()).to.be.lessThan(100);
-    expect(user.email).to.eq("foo@bar.com");
+    expect(user.createdAt.getTime()).toEqual(new Date("2018/01/02").getTime());
+    expect(post.updatedAt.getTime() - new Date().getTime()).toBeLessThan(100);
+    expect(user.email).toEqual("foo@bar.com");
   });
   it("supports nested factories", async () => {
     interface IGroceryStore {
@@ -174,9 +173,9 @@ describe("async factories build stuff", () => {
         tags: ["a", "b"]
       }
     });
-    expect(aStore.aisle.budget).to.eq(9999);
-    expect(aStore.aisle.typeOfFood).to.eq("Junk Food");
-    expect(aStore.aisle.tags).to.deep.eq(["a", "b"]);
+    expect(aStore.aisle.budget).toEqual(9999);
+    expect(aStore.aisle.typeOfFood).toEqual("Junk Food");
+    expect(aStore.aisle.tags).toEqual(["a", "b"]);
   });
   it("can transform type", async () => {
     const makeAdult = childFactory.transform<ParentType>(t => {
@@ -189,10 +188,10 @@ describe("async factories build stuff", () => {
       };
     });
     const susan = await makeAdult.build({ name: "Susan", grade: 5 });
-    expect(susan.birthday.getTime()).to.eq(new Date("1988/05/10").getTime());
-    expect(susan.name).to.eq("Susan");
-    expect(susan.spouse).to.eq(null);
-    expect(susan.children.length).to.eq(0);
+    expect(susan.birthday.getTime()).toEqual(new Date("1988/05/10").getTime());
+    expect(susan.name).toEqual("Susan");
+    expect(susan.spouse).toEqual(null);
+    expect(susan.children.length).toEqual(0);
   });
   type Saved<T extends Object> = T & { id: number };
   function saveRecord<T extends Object>(t: T): Promise<Saved<T>> {
@@ -232,14 +231,14 @@ describe("async factories build stuff", () => {
       })
       .transform(saveRecord);
     const ted = await familyFactory.build({ birthday: new Date("1980/09/23") });
-    expect(ted.id).to.be.greaterThan(0);
-    expect(ted.birthday.getTime()).to.eq(new Date("1980/09/23").getTime());
-    expect(ted.name).to.eq("Ted");
-    expect(ted.spouse!.id).to.be.greaterThan(0);
-    expect(ted.spouse!.name).to.eq("Susan");
-    expect(ted.spouse!.id).to.be.greaterThan(0);
-    expect(ted.children[0]!.name).to.eq("Billy");
-    expect(ted.children[1]!.name).to.eq("Amy");
+    expect(ted.id).toBeGreaterThan(0);
+    expect(ted.birthday.getTime()).toEqual(new Date("1980/09/23").getTime());
+    expect(ted.name).toEqual("Ted");
+    expect(ted.spouse!.id).toBeGreaterThan(0);
+    expect(ted.spouse!.name).toEqual("Susan");
+    expect(ted.spouse!.id).toBeGreaterThan(0);
+    expect(ted.children[0]!.name).toEqual("Billy");
+    expect(ted.children[1]!.name).toEqual("Amy");
   });
   it("can create async factories from sync builders", async () => {
     const parentFactory = Async.makeFactoryFromSync<ParentType>({
@@ -249,7 +248,7 @@ describe("async factories build stuff", () => {
       spouse: null
     });
     const susan = await parentFactory.build({ name: "Susan" });
-    expect(susan.name).to.equal("Susan");
-    expect(susan.birthday.getTime()).to.equal(new Date("2017/05/01").getTime());
+    expect(susan.name).toEqual("Susan");
+    expect(susan.birthday.getTime()).toEqual(new Date("2017/05/01").getTime());
   });
 });
