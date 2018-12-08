@@ -1,5 +1,4 @@
 import * as Factory from "../src/sync";
-import { expect } from "chai";
 import { makeFactory } from "../src/sync";
 
 interface ParentType {
@@ -21,19 +20,19 @@ describe("factories build stuff", () => {
   });
   const parentFactory = Factory.makeFactory<ParentType>({
     name: "Parent",
-    birthday: Factory.each(i => new Date(`2017/05/${i}`)),
+    birthday: Factory.each(i => new Date(`2017/05/${i + 1}`)),
     children: Factory.each(() => []),
     spouse: null
   });
   it("makes an object from a factory", () => {
     const jimmy = childFactory.build({ name: "Jimmy" });
-    expect(jimmy.name).to.eq("Jimmy");
-    expect(jimmy.grade).to.eq(1);
+    expect(jimmy.name).toEqual("Jimmy");
+    expect(jimmy.grade).toEqual(1);
   });
   it("makes an object with default field from a factory", () => {
     const jimmy = childFactory.build();
-    expect(jimmy.name).to.eq("Kid");
-    expect(jimmy.grade).to.eq(1);
+    expect(jimmy.name).toEqual("Kid");
+    expect(jimmy.grade).toEqual(1);
   });
   it("makes an object with default field explicitly set to null", () => {
     const anon = childFactory.build({ name: null });
@@ -43,8 +42,8 @@ describe("factories build stuff", () => {
   it("can make use of sequence #", () => {
     const susan = parentFactory.build({ name: "Susan" });
     const edward = parentFactory.build({ name: "Edward" });
-    expect(susan.birthday.getTime()).to.eq(new Date("2017/05/01").getTime());
-    expect(edward.birthday.getTime()).to.eq(new Date("2017/05/02").getTime());
+    expect(susan.birthday.getTime()).toEqual(new Date("2017/05/01").getTime());
+    expect(edward.birthday.getTime()).toEqual(new Date("2017/05/02").getTime());
   });
   it("can handle has many", () => {
     const jimmy = childFactory.build({ name: "Jimmy" });
@@ -53,7 +52,7 @@ describe("factories build stuff", () => {
       name: "Susan",
       children: [jimmy, alice]
     });
-    expect(susan.children.map(c => c.name)).to.deep.eq(["Jimmy", "Alice"]);
+    expect(susan.children.map(c => c.name)).toEqual(["Jimmy", "Alice"]);
   });
   it("can refer to other factories", () => {
     const parentWithKidsFactory = Factory.makeFactory<ParentType>({
@@ -68,16 +67,16 @@ describe("factories build stuff", () => {
     const tim = parentWithKidsFactory.build({
       birthday: new Date("2017-02-01")
     });
-    expect(tim.children.map(c => c.name)).to.deep.eq(["Bobby", "Jane"]);
+    expect(tim.children.map(c => c.name)).toEqual(["Bobby", "Jane"]);
   });
   it("can extend existing factories", () => {
     const geniusFactory = childFactory.extend({
-      grade: Factory.each(i => i * 2)
+      grade: Factory.each(i => (i + 1) * 2)
     });
     const colin = geniusFactory.build({ name: "Colin" });
-    expect(colin.grade).to.eq(2);
+    expect(colin.grade).toEqual(2);
     const albert = geniusFactory.build({ name: "Albert" });
-    expect(albert.grade).to.eq(4);
+    expect(albert.grade).toEqual(4);
   });
   it("can derive one value based on another value", () => {
     interface Person {
@@ -86,20 +85,22 @@ describe("factories build stuff", () => {
       readonly fullName: string;
     }
     const personFactory = Factory.makeFactory<Person>({
-      firstName: "",
-      lastName: "Bond",
+      firstName: "Double-O",
+      lastName: Factory.each(() => "Bond"),
       fullName: ""
     }).withDerivation("fullName", p => `${p.firstName} ${p.lastName}`);
     //.withDerivation2(['firstName','lastName'],'fullName', (fn, ln) => `${fn} ${ln}`);
     const bond = personFactory.build({ firstName: "James" });
-    expect(bond.fullName).to.eq("James Bond");
+    expect(bond.fullName).toEqual("James Bond");
+    const doubleO = personFactory.build();
+    expect(doubleO.fullName).toEqual("Double-O Bond");
   });
   it("can build a list of items", () => {
     const children = childFactory.buildList(3, { name: "Bruce" });
-    expect(children.length).to.eq(3);
+    expect(children.length).toEqual(3);
     for (let child of children) {
-      expect(child.name).to.eq("Bruce");
-      expect(child.grade).to.eq(1);
+      expect(child.name).toEqual("Bruce");
+      expect(child.grade).toEqual(1);
     }
   });
   it("can combine factories", () => {
@@ -136,15 +137,15 @@ describe("factories build stuff", () => {
       content: "yadda yadda yadda",
       isDeleted: true
     });
-    expect(post.createdAt.getTime() - new Date().getTime()).to.be.lessThan(100);
-    expect(post.isDeleted).to.be.true;
+    expect(post.createdAt.getTime() - new Date().getTime()).toBeLessThan(100);
+    expect(post.isDeleted).toEqual(true);
     const user = userFactory.build({
       email: "foo@bar.com",
       createdAt: new Date("2018/01/02")
     });
-    expect(user.createdAt.getTime()).to.eq(new Date("2018/01/02").getTime());
-    expect(post.updatedAt.getTime() - new Date().getTime()).to.be.lessThan(100);
-    expect(user.email).to.eq("foo@bar.com");
+    expect(user.createdAt.getTime()).toEqual(new Date("2018/01/02").getTime());
+    expect(post.updatedAt.getTime() - new Date().getTime()).toBeLessThan(100);
+    expect(user.email).toEqual("foo@bar.com");
   });
   it("supports nested factories", () => {
     interface IGroceryStore {
@@ -171,8 +172,51 @@ describe("factories build stuff", () => {
         tags: ["a", "b"]
       }
     });
-    expect(aStore.aisle.budget).to.eq(9999);
-    expect(aStore.aisle.typeOfFood).to.eq("Junk Food");
-    expect(aStore.aisle.tags).to.deep.eq(["a", "b"]);
+    expect(aStore.aisle.budget).toEqual(9999);
+    expect(aStore.aisle.typeOfFood).toEqual("Junk Food");
+    expect(aStore.aisle.tags).toEqual(["a", "b"]);
   });
+  it("supports recursive factories", () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+      recur: null | TypeA;
+    }
+    const factoryA = Factory.makeFactory<TypeA>({
+      foo: Factory.each(n => n),
+      bar: "hello",
+      recur: null
+    })
+    const factoryAPrime = factoryA.withDerivation("foo", (_v, n) => {
+      // inner: factoryA.build().foo should be 0, n should be 1
+      // outer: factoryA.build().foo should be 1, n should be 2
+      const foo = factoryA.build().foo;
+      return foo * 100 + n; // 001 : 102
+    }).withDerivation("bar", (v, n) => {
+      // inner: n should be 2, v.foo should be 001 -> "001:1"
+      // outer: n should be 3, v.foo should be 102 -> "102:2"
+      return v.foo + ":" + n;
+    });
+    const justA = factoryAPrime.build({ foo: 99 }); // seq 1
+    expect(justA.foo).toEqual(99);
+    const aWithA = factoryAPrime.build({ // outer: starts on seq 3
+      recur: factoryAPrime.build() // inner: starts on seq 2
+    });
+    expect(aWithA.foo).toEqual(102);
+    expect(aWithA.bar).toEqual("102:2");
+    expect(aWithA.recur!.foo).toEqual(1);
+    expect(aWithA.recur!.bar).toEqual("1:1");
+  });
+  it("allows custom seq num start", () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+    }
+    const factoryA = Factory.makeFactory<TypeA>({
+      foo: Factory.each(n => n + 1),
+      bar: "hello",
+    }, { startingSequenceNumber: 3 });
+    const a = factoryA.build();
+    expect(a.foo).toEqual(4);
+  })
 });

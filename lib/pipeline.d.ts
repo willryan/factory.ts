@@ -1,7 +1,8 @@
 import * as Async from "./async";
 import { RecPartial } from "./shared";
 declare type MaybePromise<T> = T | Promise<T>;
-declare type MaybePromiseFunc<P, T> = T | ((p: P) => MaybePromise<T>);
+declare type PromiseFunc<P, T> = ((p: P) => MaybePromise<T>);
+declare type MaybePromiseFunc<P, T> = T | PromiseFunc<P, T>;
 declare type PipePartial<P, T> = MaybePromiseFunc<P, RecPartial<T>>;
 export declare class Pipeline<P extends Object = {}> implements PromiseLike<P> {
     private current;

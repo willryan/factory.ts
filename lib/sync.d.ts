@@ -1,4 +1,7 @@
 import { RecPartial } from "./shared";
+export interface SyncFactoryConfig {
+    readonly startingSequenceNumber?: number;
+}
 export declare type FactoryFunc<T> = (item?: RecPartial<T>) => T;
 export declare class Generator<T> {
     readonly func: (seq: number) => T;
@@ -12,8 +15,9 @@ export declare class Derived<TOwner, TProperty> {
 }
 export declare class Factory<T> {
     readonly builder: Builder<T>;
+    private readonly config;
     private seqNum;
-    constructor(builder: Builder<T>);
+    constructor(builder: Builder<T>, config: SyncFactoryConfig | undefined);
     build(item?: RecPartial<T>): T;
     private static recursivePartialOverride;
     buildList(count: number, item?: RecPartial<T>): T[];
@@ -31,4 +35,4 @@ export declare type Builder<T> = {
 };
 export declare function val<T>(val: T): Generator<T>;
 export declare function each<T>(f: (seqNum: number) => T): Generator<T>;
-export declare function makeFactory<T>(builder: Builder<T>): Factory<T>;
+export declare function makeFactory<T>(builder: Builder<T>, config?: SyncFactoryConfig): Factory<T>;

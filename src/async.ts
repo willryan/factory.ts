@@ -2,6 +2,10 @@ import { RecPartial } from "./shared";
 import * as Sync from "./sync";
 import { Async } from ".";
 
+export interface AsyncFactoryConfig {
+  readonly startingSequenceNumber?: number
+}
+
 export type FactoryFunc<T, U = T> = (item?: RecPartial<T>) => Promise<U>;
 export type ListFactoryFunc<T, U = T> = (
   count: number,
@@ -21,7 +25,7 @@ export function lift<T>(t: T | Promise<T>): Promise<T> {
 }
 
 export class Generator<T> {
-  constructor(readonly func: (seq: number) => T | Promise<T>) {}
+  constructor(readonly func: (seq: number) => T | Promise<T>) { }
   public build(seq: number): Promise<T> {
     return lift(this.func(seq));
   }
@@ -32,7 +36,7 @@ export class Derived<TOwner, TProperty> {
       owner: TOwner,
       seq: number
     ) => TProperty | Promise<TProperty>
-  ) {}
+  ) { }
   public build(owner: TOwner, seq: number): Promise<TProperty> {
     return lift(this.func(owner, seq));
   }
@@ -45,23 +49,24 @@ export interface IFactory<T, U> {
 
 export class Factory<T> implements IFactory<T, T> {
   private seqNum: number;
-  constructor(readonly builder: Builder<T>) {
-    this.seqNum = 0;
+  constructor(readonly builder: Builder<T>, private readonly config: AsyncFactoryConfig | undefined) {
+    this.seqNum = this.config && this.config.startingSequenceNumber || 0;
   }
 
   public async build(item?: RecPartial<T>): Promise<T> {
-    this.seqNum++;
-    const base = await buildBase(this.seqNum, this.builder);
+    const seqNum = this.seqNum;
+    const base = await buildBase(seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
     if (item) {
       v = Factory.recursivePartialOverride(v, item);
-      const keys = Object.keys(item);
-      for (const der of base.derived) {
-        if (keys.indexOf(der.key) < 0) {
-          (v as any)[der.key] = await der.derived.build(v, this.seqNum);
-        }
+    }
+    const keys = Object.keys(item || {});
+    for (const der of base.derived) {
+      if (keys.indexOf(der.key) < 0) {
+        (v as any)[der.key] = await der.derived.build(v, seqNum);
       }
     }
+    this.seqNum++;
     return lift(v);
   }
 
@@ -98,14 +103,14 @@ export class Factory<T> implements IFactory<T, T> {
 
   public extend(def: RecPartial<Builder<T>>): Factory<T> {
     const builder = Object.assign({}, this.builder, def);
-    return new Factory(builder);
+    return new Factory(builder, this.config);
   }
 
   public combine<U>(other: Factory<U>): Factory<T & U> {
     const builder = Object.assign({}, this.builder, other.builder) as Builder<
       T & U
     >;
-    return new Factory<T & U>(builder);
+    return new Factory<T & U>(builder, this.config);
   }
 
   public transform<U>(fn: (t: T) => U | Promise<U>): TransformFactory<T, U> {
@@ -224,7 +229,7 @@ export class TransformFactory<T, U> implements IFactory<T, U> {
   constructor(
     private readonly inner: Factory<T>,
     private readonly transform: (t: T) => U | Promise<U>
-  ) {}
+  ) { }
   public async build(item?: RecPartial<T>): Promise<U> {
     const v = await this.inner.build(item);
     const u = await lift(this.transform(v));
@@ -286,10 +291,10 @@ async function buildBase<T>(
   return { value: t as T, derived };
 }
 
-export function makeFactory<T>(builder: Builder<T>): Factory<T> {
-  return new Factory(builder);
+export function makeFactory<T>(builder: Builder<T>, config?: AsyncFactoryConfig): Factory<T> {
+  return new Factory(builder, config);
 }
 
-export function makeFactoryFromSync<T>(builder: Sync.Builder<T>): Factory<T> {
-  return new Factory(builder as Async.Builder<T>);
+export function makeFactoryFromSync<T>(builder: Sync.Builder<T>, config?: AsyncFactoryConfig): Factory<T> {
+  return new Factory(builder as Async.Builder<T>, config);
 }

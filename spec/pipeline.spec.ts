@@ -1,6 +1,5 @@
 import * as Pipe from "../src/pipeline";
 import * as Factory from "../src/async";
-import { expect } from "chai";
 
 interface ParentType {
   name: string;
@@ -24,7 +23,7 @@ describe("pipelines", () => {
     birthday: Factory.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
     children: Factory.each(() => []),
     spouse: null
-  });
+  }, { startingSequenceNumber: 1 });
   const grandpaFactory = parentFactory.transform(parent => {
     return {
       ...parent,
@@ -51,20 +50,20 @@ describe("pipelines", () => {
         children: [v.dad]
       }));
     const data = await p;
-    expect(data.hello).to.eq("kitty");
-    expect(data.hola).to.eq("espanol");
-    expect(data.byebye).to.eq("birdie");
-    expect(data.corner).to.eq("kitty corner");
-    expect(data.golf).to.eq("birdie");
-    expect(data.kiddo.grade).to.eq(2);
-    expect(data.kiddo.name).to.eq("Kid");
-    expect(data.dad.name).to.eq("Dad");
-    expect(data.dad.birthday.getTime()).to.eq(new Date("2017/05/01").getTime());
-    expect(data.dad.children.length).to.eq(1);
-    expect(data.dad.children[0]).to.eq(data.kiddo);
-    expect(data.gramps.name).to.eq("Gramps");
-    expect(data.gramps.spoils).to.eq(true);
-    expect(data.gramps.children.length).to.eq(1);
-    expect(data.gramps.children[0]).to.eq(data.dad);
+    expect(data.hello).toEqual("kitty");
+    expect(data.hola).toEqual("espanol");
+    expect(data.byebye).toEqual("birdie");
+    expect(data.corner).toEqual("kitty corner");
+    expect(data.golf).toEqual("birdie");
+    expect(data.kiddo.grade).toEqual(2);
+    expect(data.kiddo.name).toEqual("Kid");
+    expect(data.dad.name).toEqual("Dad");
+    expect(data.dad.birthday.getTime()).toEqual(new Date("2017/05/01").getTime());
+    expect(data.dad.children.length).toEqual(1);
+    expect(data.dad.children[0]).toEqual(data.kiddo);
+    expect(data.gramps.name).toEqual("Gramps");
+    expect(data.gramps.spoils).toEqual(true);
+    expect(data.gramps.children.length).toEqual(1);
+    expect(data.gramps.children[0]).toEqual(data.dad);
   });
 });

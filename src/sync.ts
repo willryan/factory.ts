@@ -1,15 +1,19 @@
 import { RecPartial } from "./shared";
 
+export interface SyncFactoryConfig {
+  readonly startingSequenceNumber?: number
+}
+
 export type FactoryFunc<T> = (item?: RecPartial<T>) => T;
 
 export class Generator<T> {
-  constructor(readonly func: (seq: number) => T) {}
+  constructor(readonly func: (seq: number) => T) { }
   public build(seq: number): T {
     return this.func(seq);
   }
 }
 export class Derived<TOwner, TProperty> {
-  constructor(readonly func: (owner: TOwner, seq: number) => TProperty) {}
+  constructor(readonly func: (owner: TOwner, seq: number) => TProperty) { }
   public build(owner: TOwner, seq: number): TProperty {
     const ret = this.func(owner, seq);
     return ret;
@@ -18,23 +22,24 @@ export class Derived<TOwner, TProperty> {
 
 export class Factory<T> {
   private seqNum: number;
-  constructor(readonly builder: Builder<T>) {
-    this.seqNum = 0;
+  constructor(readonly builder: Builder<T>, private readonly config: SyncFactoryConfig | undefined) {
+    this.seqNum = this.config && this.config.startingSequenceNumber || 0;
   }
 
   public build(item?: RecPartial<T>): T {
-    this.seqNum++;
-    const base = buildBase(this.seqNum, this.builder);
+    const seqNum = this.seqNum;
+    const base = buildBase(seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
     if (item) {
       v = Factory.recursivePartialOverride(v, item);
-      const keys = Object.keys(item);
-      for (const der of base.derived) {
-        if (keys.indexOf(der.key) < 0) {
-          (v as any)[der.key] = der.derived.build(v, this.seqNum);
-        }
+    }
+    const keys = Object.keys(item || {});
+    for (const der of base.derived) {
+      if (keys.indexOf(der.key) < 0) {
+        (v as any)[der.key] = der.derived.build(v, seqNum);
       }
     }
+    this.seqNum++;
     return v;
   }
 
@@ -72,14 +77,14 @@ export class Factory<T> {
 
   public extend(def: RecPartial<Builder<T>>): Factory<T> {
     const builder = Object.assign({}, this.builder, def);
-    return new Factory(builder);
+    return new Factory(builder, this.config);
   }
 
   public combine<U>(other: Factory<U>): Factory<T & U> {
     const builder = Object.assign({}, this.builder, other.builder) as Builder<
       T & U
     >;
-    return new Factory<T & U>(builder);
+    return new Factory<T & U>(builder, this.config);
   }
 
   public withDerivation<KOut extends keyof T>(
@@ -220,8 +225,8 @@ function buildBase<T>(seqNum: number, builder: Builder<T>): BaseBuild<T> {
   return { value: t as T, derived };
 }
 
-export function makeFactory<T>(builder: Builder<T>): Factory<T> {
-  return new Factory(builder);
+export function makeFactory<T>(builder: Builder<T>, config?: SyncFactoryConfig): Factory<T> {
+  return new Factory(builder, config);
 }
 
 function uniq<T>(ts: Array<T>): Array<T> {

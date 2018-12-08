@@ -7,11 +7,17 @@
     "lib": [
       "es2015"
     ],
+    "alwaysStrict": true,
+    "strictFunctionTypes": true,
+    "strict": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "removeComments": false,
-    "sourceMap": true,
+    //"sourceMap": true,
+    "inlineSourceMap": true,
     "noEmitHelpers": false,
     "strictNullChecks": true,
     "baseUrl": "./",

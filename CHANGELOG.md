@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.1] - 2018-12-07
+
+- 0.4.0 changes (sequence numbers, derived values when `build()` called without any arguments) added to async as well as sync.
+- Changed makeFactory to take a config object instead of just a starting sequence number, so that any future factory-level config is not an API breaking change
+
+## [0.4.0] - 2018-12-06
+
+### Changed
+
+- Sequence numbers start from 0 by default, but you can specify a starting sequence number (1) to restore previous behavior.
+- Mocha -> Jest. I was having a hard time debugging with Mocha so I switched to the framework I know better.
+
+### Fixed
+
+- derived values did not work when `item` was not passed in to `build()`. They would return the internal `Derived` object rather than run the derivation function.
+
 ## [0.3.4] - 2018-08-14
 
 ### Added
