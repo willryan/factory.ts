@@ -37,8 +37,8 @@ describe("async factories build stuff", () => {
   });
   it("makes an object with default field explicitly set to null", async () => {
     const anon = await childFactory.build({ name: null });
-    expect(anon.name).to.be.null;
-    expect(anon.grade).to.eq(1);
+    expect(anon.name).toBeNull();
+    expect(anon.grade).toEqual(1);
   });
   it("can make use of sequence #", async () => {
     const susan = await parentFactory.build({ name: "Susan" });
