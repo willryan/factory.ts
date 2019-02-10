@@ -22,8 +22,14 @@ export class Derived<TOwner, TProperty> {
 
 export class Factory<T> {
   private seqNum: number;
+  private getStartingSequenceNumber = () => this.config && this.config.startingSequenceNumber || 0;
+
   constructor(readonly builder: Builder<T>, private readonly config: SyncFactoryConfig | undefined) {
-    this.seqNum = this.config && this.config.startingSequenceNumber || 0;
+    this.seqNum = this.getStartingSequenceNumber();
+  }
+
+  public resetSequenceNumber() {
+    this.seqNum = this.getStartingSequenceNumber();
   }
 
   public build(item?: RecPartial<T>): T {

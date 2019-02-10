@@ -13,6 +13,11 @@ interface ChildType {
   grade: number;
 }
 
+interface WidgetType {
+  name: string;
+  id: number;
+}
+
 describe("factories build stuff", () => {
   const childFactory = Factory.makeFactory<ChildType>({
     name: "Kid",
@@ -213,5 +218,35 @@ describe("factories build stuff", () => {
     }, { startingSequenceNumber: 3 });
     const a = factoryA.build();
     expect(a.foo).toEqual(4);
+  })
+  it("Can reset sequence number back to non-config default i.e. 0", () => {
+    const widgetFactory = Factory.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Factory.each(i => i)
+    });
+
+    const widgets = widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(2);
+
+    widgetFactory.resetSequenceNumber();
+
+    const moreWidgets = widgetFactory.buildList(3);
+    expect(moreWidgets[2].id).toBe(2);
+  })
+  it("Can reset sequence number back to config default", () => {
+    const widgetFactory = Factory.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Factory.each(i => i)
+    }, {
+        startingSequenceNumber: 100
+      });
+
+    const widgets = widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(102);
+
+    widgetFactory.resetSequenceNumber();
+
+    const moreWidgets = widgetFactory.buildList(3);
+    expect(moreWidgets[2].id).toBe(102);
   })
 });

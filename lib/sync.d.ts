@@ -17,7 +17,9 @@ export declare class Factory<T> {
     readonly builder: Builder<T>;
     private readonly config;
     private seqNum;
+    private getStartingSequenceNumber;
     constructor(builder: Builder<T>, config: SyncFactoryConfig | undefined);
+    resetSequenceNumber(): void;
     build(item?: RecPartial<T>): T;
     private static recursivePartialOverride;
     buildList(count: number, item?: RecPartial<T>): T[];
