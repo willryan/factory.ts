@@ -63,6 +63,12 @@ And you can create an array of objects from factory using `buildList` (with or w
 const theBradyBunch = personFactory.buildList(8, { lastName: "Brady" });
 ```
 
+To reset the factory's sequence number used by 'build' and 'buildList':
+
+```typescript
+personFactory.resetSequenceNumber();
+```
+
 ### Extending factories
 
 Occasionally you may want to extend an existing factory with some changes. For example, we might want to create a personFactory that emits a totally random age range:
