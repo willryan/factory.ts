@@ -79,7 +79,7 @@ export class Factory<T> implements IFactory<T, T> {
     for (const key of Object.keys(v)) {
       if (yKeys.indexOf(key) >= 0) {
         const itemKeyVal = (y as any)[key];
-        if (typeof itemKeyVal === "object") {
+        if (null != itemKeyVal && typeof itemKeyVal === "object") {
           const baseKeyVal = (v as any)[key];
           (v as any)[key] = Factory.recursivePartialOverride(
             baseKeyVal,

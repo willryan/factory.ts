@@ -53,7 +53,7 @@ export class Factory<T> {
     for (const key of allKeys) {
       if (yKeys.indexOf(key) >= 0) {
         const itemKeyVal = (y as any)[key];
-        if (typeof itemKeyVal === "object") {
+        if (null != itemKeyVal && typeof itemKeyVal === "object") {
           const baseKeyVal = (v as any)[key];
           (v as any)[key] = Factory.recursivePartialOverride(
             baseKeyVal,
