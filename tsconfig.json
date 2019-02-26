@@ -1,4 +1,5 @@
 {
+  "include": ["src", "interfaces"],
   "compilerOptions": {
     "declaration": true,
     "outDir": "lib",
