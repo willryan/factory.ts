@@ -49,8 +49,14 @@ export interface IFactory<T, U> {
 
 export class Factory<T> implements IFactory<T, T> {
   private seqNum: number;
+  private getStartingSequenceNumber = () => this.config && this.config.startingSequenceNumber || 0;
+  
   constructor(readonly builder: Builder<T>, private readonly config: AsyncFactoryConfig | undefined) {
-    this.seqNum = this.config && this.config.startingSequenceNumber || 0;
+    this.seqNum = this.getStartingSequenceNumber();
+  }
+
+  public resetSequenceNumber() {
+    this.seqNum = this.getStartingSequenceNumber();
   }
 
   public async build(item?: RecPartial<T>): Promise<T> {
