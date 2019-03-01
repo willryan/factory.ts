@@ -1,6 +1,7 @@
 import { RecPartial } from "./shared";
 import * as Sync from "./sync";
 import { Async } from ".";
+import * as cloneDeep from "clone-deep";
 
 export interface AsyncFactoryConfig {
   readonly startingSequenceNumber?: number
@@ -284,6 +285,8 @@ async function buildBase<T>(
         value = (v as Sync.Generator<any>).build(seqNum);
       } else if (v.constructor == Sync.Derived) {
         derived.push({ key, derived: new Derived(v.func) });
+      } else {
+        value = cloneDeep(v);
       }
     }
     t[key] = value;

@@ -269,5 +269,21 @@ describe("async factories build stuff", () => {
     }, { startingSequenceNumber: 3 });
     const a = await factoryA.build();
     expect(a.foo).toEqual(4);
-  })
+  });
+  it("clones deeply nested values", async () => {
+    interface TypeA {
+      bar: {
+        baz: string;
+      };
+    }
+    const factoryA = Async.makeFactory<TypeA>({
+      bar: {
+        baz: "should-be-immutable"
+      }
+    });
+    const a = await factoryA.build();
+    const b = await factoryA.build();
+    a.bar.baz = "is-not-immutable";
+    expect(b.bar.baz).toEqual("should-be-immutable");
+  });
 });

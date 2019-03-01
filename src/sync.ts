@@ -1,4 +1,5 @@
 import { RecPartial } from "./shared";
+import * as cloneDeep from "clone-deep";
 
 export interface SyncFactoryConfig {
   readonly startingSequenceNumber?: number
@@ -218,6 +219,8 @@ function buildBase<T>(seqNum: number, builder: Builder<T>): BaseBuild<T> {
         value = v.build(seqNum);
       } else if (v.constructor == Derived) {
         derived.push({ key, derived: v });
+      } else {
+        value = cloneDeep(v);
       }
     }
     t[key] = value;

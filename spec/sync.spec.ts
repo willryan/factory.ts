@@ -219,4 +219,20 @@ describe("factories build stuff", () => {
     const a = factoryA.build();
     expect(a.foo).toEqual(4);
   })
+  it("clones deeply nested values", () => {
+    interface TypeA {
+      bar: {
+        baz: string;
+      }
+    }
+    const factoryA = Factory.makeFactory<TypeA>({
+      bar: {
+        baz: "should-be-immutable"
+      }
+    });
+    const a = factoryA.build();
+    const b = factoryA.build();
+    a.bar.baz = "is-not-immutable";
+    expect(b.bar.baz).toEqual("should-be-immutable")
+  });
 });
