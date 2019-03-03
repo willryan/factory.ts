@@ -1,6 +1,6 @@
 {
   "name": "factory.ts",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "license": "MIT",
   "description": "A Typescript test data factory similar to factory_bot and rosie",
   "scripts": {
@@ -8,7 +8,7 @@
     "test": "jest --colors",
     "test:debug": "node --inspect=9229 --inspect-brk ./node_modules/.bin/jest --runInBand",
     "test:watch": "yarn test:truncate && jest --watch",
-    "publish": "yarn build && npm publish"
+    "build-and-publish": "yarn build && npm publish"
   },
   "jest": {
     "reporters": [
