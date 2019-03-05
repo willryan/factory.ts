@@ -1,6 +1,7 @@
 import { RecPartial } from "./shared";
 import * as Sync from "./sync";
 import { Async } from ".";
+import * as cloneDeep from "clone-deep";
 
 export interface AsyncFactoryConfig {
   readonly startingSequenceNumber?: number
@@ -85,7 +86,7 @@ export class Factory<T> implements IFactory<T, T> {
     for (const key of Object.keys(v)) {
       if (yKeys.indexOf(key) >= 0) {
         const itemKeyVal = (y as any)[key];
-        if (typeof itemKeyVal === "object") {
+        if (null != itemKeyVal && typeof itemKeyVal === "object") {
           const baseKeyVal = (v as any)[key];
           (v as any)[key] = Factory.recursivePartialOverride(
             baseKeyVal,
@@ -291,6 +292,8 @@ async function buildBase<T>(
         value = (v as Sync.Generator<any>).build(seqNum);
       } else if (v.constructor == Sync.Derived) {
         derived.push({ key, derived: new Derived(v.func) });
+      } else {
+        value = cloneDeep(v);
       }
     }
     t[key] = value;

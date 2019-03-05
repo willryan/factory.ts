@@ -3,14 +3,14 @@ import * as Sync from "../src/sync";
 import { makeFactory } from "../src/async";
 
 interface ParentType {
-  name: string;
+  name: string | null;
   birthday: Date;
   children: ChildType[];
   spouse: ParentType | null;
 }
 
 interface ChildType {
-  name: string;
+  name: string | null;
   grade: number;
 }
 
@@ -39,6 +39,11 @@ describe("async factories build stuff", () => {
     const jimmy = await childFactory.build();
     expect(jimmy.name).toEqual("Kid");
     expect(jimmy.grade).toEqual(1);
+  });
+  it("makes an object with default field explicitly set to null", async () => {
+    const anon = await childFactory.build({ name: null });
+    expect(anon.name).toBeNull();
+    expect(anon.grade).toEqual(1);
   });
   it("can make use of sequence #", async () => {
     const susan = await parentFactory.build({ name: "Susan" });
@@ -290,7 +295,7 @@ describe("async factories build stuff", () => {
       id: Async.each(i => i)
     });
 
-    const widgets =  await widgetFactory.buildList(3);
+    const widgets = await widgetFactory.buildList(3);
     expect(widgets[2].id).toBe(2);
 
     widgetFactory.resetSequenceNumber();
@@ -314,4 +319,20 @@ describe("async factories build stuff", () => {
     const moreWidgets = await widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(102);
   })
+  it("clones deeply nested values", async () => {
+    interface TypeA {
+      bar: {
+        baz: string;
+      };
+    }
+    const factoryA = Async.makeFactory<TypeA>({
+      bar: {
+        baz: "should-be-immutable"
+      }
+    });
+    const a = await factoryA.build();
+    const b = await factoryA.build();
+    a.bar.baz = "is-not-immutable";
+    expect(b.bar.baz).toEqual("should-be-immutable");
+  });
 });

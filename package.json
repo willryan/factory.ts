@@ -1,16 +1,19 @@
 {
   "name": "factory.ts",
-  "version": "0.4.1",
+  "version": "0.4.3",
   "license": "MIT",
   "description": "A Typescript test data factory similar to factory_bot and rosie",
   "scripts": {
     "build": "tsc -p .",
     "test": "jest --colors",
     "test:debug": "node --inspect=9229 --inspect-brk ./node_modules/.bin/jest --runInBand",
-    "test:watch": "yarn test:truncate && jest --watch"
+    "test:watch": "yarn test:truncate && jest --watch",
+    "build-and-publish": "yarn build && npm login && npm publish"
   },
   "jest": {
-    "reporters": ["default"],
+    "reporters": [
+      "default"
+    ],
     "transform": {
       "\\.(js|ts)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
@@ -55,6 +58,7 @@
     "webpack-dev-server": "^1.16.2"
   },
   "dependencies": {
+    "clone-deep": "^4.0.1",
     "source-map-support": "^0.5.9",
     "tslint": "^5.11.0"
   }

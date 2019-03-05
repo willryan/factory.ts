@@ -9,7 +9,7 @@ interface ParentType {
 }
 
 interface ChildType {
-  name: string;
+  name: string | null;
   grade: number;
 }
 
@@ -38,6 +38,11 @@ describe("factories build stuff", () => {
     const jimmy = childFactory.build();
     expect(jimmy.name).toEqual("Kid");
     expect(jimmy.grade).toEqual(1);
+  });
+  it("makes an object with default field explicitly set to null", () => {
+    const anon = childFactory.build({ name: null });
+    expect(anon.name).toBeNull();
+    expect(anon.grade).toEqual(1);
   });
   it("can make use of sequence #", () => {
     const susan = parentFactory.build({ name: "Susan" });
@@ -250,3 +255,19 @@ describe("factories build stuff", () => {
     expect(moreWidgets[2].id).toBe(102);
   })
 });
+  it("clones deeply nested values", () => {
+    interface TypeA {
+      bar: {
+        baz: string;
+      }
+    }
+    const factoryA = Factory.makeFactory<TypeA>({
+      bar: {
+        baz: "should-be-immutable"
+      }
+    });
+    const a = factoryA.build();
+    const b = factoryA.build();
+    a.bar.baz = "is-not-immutable";
+    expect(b.bar.baz).toEqual("should-be-immutable")
+  });
