@@ -220,26 +220,9 @@ describe("factories build stuff", () => {
     const factoryA = Factory.makeFactory<TypeA>({
       foo: Factory.each(n => n + 1),
       bar: "hello",
-    }, { startingSequenceNumber: 3, resetSeqNumAfterBuildHasRun: false });
+    }, { startingSequenceNumber: 3 });
     const a = factoryA.build();
     expect(a.foo).toEqual(4);
-  })
-  it("allows custom seq num to be automatically re-set after build has run", () => {
-    interface TypeA {
-      foo: number;
-      bar: string;
-    }
-    const factoryA = Factory.makeFactory<TypeA>({
-      foo: Factory.each(n => n + 1),
-      bar: "hello",
-    }, { startingSequenceNumber: 3, resetSeqNumAfterBuildHasRun: true });
-    const a = factoryA.build();
-    expect(a.foo).toEqual(4);
-
-    // Assert that the seqNum has been re-set after build was last run
-    // i.e. Check that b.foo will again equal 4.
-    const b = factoryA.build();
-    expect(b.foo).toEqual(4);
   })
   it("Can reset sequence number back to non-config default i.e. 0", () => {
     const widgetFactory = Factory.makeFactory<WidgetType>({
@@ -260,7 +243,7 @@ describe("factories build stuff", () => {
       name: "Widget",
       id: Factory.each(i => i)
     }, {
-        startingSequenceNumber: 100, resetSeqNumAfterBuildHasRun: false
+        startingSequenceNumber: 100
       });
 
     const widgets = widgetFactory.buildList(3);
