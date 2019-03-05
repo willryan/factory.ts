@@ -24,7 +24,9 @@ export declare class Factory<T> implements IFactory<T, T> {
     readonly builder: Builder<T>;
     private readonly config;
     private seqNum;
+    private getStartingSequenceNumber;
     constructor(builder: Builder<T>, config: AsyncFactoryConfig | undefined);
+    resetSequenceNumber(): void;
     build(item?: RecPartial<T>): Promise<T>;
     private static recursivePartialOverride;
     buildList(count: number, item?: RecPartial<T>): Promise<T[]>;
