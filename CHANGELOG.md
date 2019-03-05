@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.2] - 2019-03-03
+
+- Build objects with clone-deep to avoid shared mutable data between multiple factory invocations (or with original seed data).
+- `null` now correctly overrides default values.
+
 ## [0.4.1] - 2018-12-07
 
 - 0.4.0 changes (sequence numbers, derived values when `build()` called without any arguments) added to async as well as sync.
