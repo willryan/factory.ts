@@ -220,9 +220,26 @@ describe("factories build stuff", () => {
     const factoryA = Factory.makeFactory<TypeA>({
       foo: Factory.each(n => n + 1),
       bar: "hello",
-    }, { startingSequenceNumber: 3 });
+    }, { startingSequenceNumber: 3, resetSeqNumAfterBuildHasRun: false });
     const a = factoryA.build();
     expect(a.foo).toEqual(4);
+  })
+  it("allows custom seq num to be automatically re-set after build has run", () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+    }
+    const factoryA = Factory.makeFactory<TypeA>({
+      foo: Factory.each(n => n + 1),
+      bar: "hello",
+    }, { startingSequenceNumber: 3, resetSeqNumAfterBuildHasRun: true });
+    const a = factoryA.build();
+    expect(a.foo).toEqual(4);
+
+    // Assert that the seqNum has been re-set after build was last run
+    // i.e. Check that b.foo will again equal 4.
+    const b = factoryA.build();
+    expect(b.foo).toEqual(4);
   })
   it("Can reset sequence number back to non-config default i.e. 0", () => {
     const widgetFactory = Factory.makeFactory<WidgetType>({
@@ -243,7 +260,7 @@ describe("factories build stuff", () => {
       name: "Widget",
       id: Factory.each(i => i)
     }, {
-        startingSequenceNumber: 100
+        startingSequenceNumber: 100, resetSeqNumAfterBuildHasRun: false
       });
 
     const widgets = widgetFactory.buildList(3);
@@ -255,19 +272,19 @@ describe("factories build stuff", () => {
     expect(moreWidgets[2].id).toBe(102);
   })
 });
-  it("clones deeply nested values", () => {
-    interface TypeA {
-      bar: {
-        baz: string;
-      }
+it("clones deeply nested values", () => {
+  interface TypeA {
+    bar: {
+      baz: string;
     }
-    const factoryA = Factory.makeFactory<TypeA>({
-      bar: {
-        baz: "should-be-immutable"
-      }
-    });
-    const a = factoryA.build();
-    const b = factoryA.build();
-    a.bar.baz = "is-not-immutable";
-    expect(b.bar.baz).toEqual("should-be-immutable")
+  }
+  const factoryA = Factory.makeFactory<TypeA>({
+    bar: {
+      baz: "should-be-immutable"
+    }
   });
+  const a = factoryA.build();
+  const b = factoryA.build();
+  a.bar.baz = "is-not-immutable";
+  expect(b.bar.baz).toEqual("should-be-immutable")
+});
