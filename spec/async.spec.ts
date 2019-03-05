@@ -289,7 +289,7 @@ describe("async factories build stuff", () => {
     const a = await factoryA.build();
     expect(a.foo).toEqual(4);
   })
-  it("Can reset sequence number back to non-config default i.e. 0", async () => {
+  it("Can reset sequence number back to config default i.e. 0", async () => {
     const widgetFactory = Async.makeFactory<WidgetType>({
       name: "Widget",
       id: Async.each(i => i)
@@ -303,7 +303,7 @@ describe("async factories build stuff", () => {
     const moreWidgets = await widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(2);
   })
-  it("Can reset sequence number back to config default", async () => {
+  it("Can reset sequence number back to non-config default", async () => {
     const widgetFactory = Async.makeFactory<WidgetType>({
       name: "Widget",
       id: Async.each(i => i)
