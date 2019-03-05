@@ -2,6 +2,7 @@ import { RecPartial } from "./shared";
 
 export interface SyncFactoryConfig {
   readonly startingSequenceNumber?: number
+  readonly resetSeqNumAfterBuildHasRun: boolean
 }
 
 export type FactoryFunc<T> = (item?: RecPartial<T>) => T;
@@ -33,7 +34,8 @@ export class Factory<T> {
   }
 
   public build(item?: RecPartial<T>): T {
-    const seqNum = this.seqNum;
+    const seqNum = this.config && this.config.resetSeqNumAfterBuildHasRun ? this.getStartingSequenceNumber() : this.seqNum;
+    this.seqNum++;
     const base = buildBase(seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
     if (item) {
@@ -45,7 +47,6 @@ export class Factory<T> {
         (v as any)[der.key] = der.derived.build(v, seqNum);
       }
     }
-    this.seqNum++;
     return v;
   }
 
