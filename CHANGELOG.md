@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.4] - 2019-03-16
+
+- Added `resetSequenceNumber()` function.
+
 ## [0.4.2] - 2019-03-03
 
 - Build objects with clone-deep to avoid shared mutable data between multiple factory invocations (or with original seed data).
