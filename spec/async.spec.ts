@@ -14,6 +14,11 @@ interface ChildType {
   grade: number;
 }
 
+interface WidgetType {
+  name: string;
+  id: number;
+}
+
 describe("async factories build stuff", () => {
   const childFactory = Async.makeFactory<ChildType>({
     name: "Kid",
@@ -258,6 +263,20 @@ describe("async factories build stuff", () => {
     expect(susan.name).toEqual("Susan");
     expect(susan.birthday.getTime()).toEqual(new Date("2017/05/01").getTime());
   });
+  it("seq num works as expected", async () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+    }
+    const factoryA = Async.makeFactory<TypeA>({
+      foo: Async.each(n => n),
+      bar: "hello",
+    });
+    const a = await factoryA.buildList(3);
+    expect(a[0].foo).toEqual(0);
+    expect(a[1].foo).toEqual(1);
+    expect(a[2].foo).toEqual(2);
+  })
   it("allows custom seq num start", async () => {
     interface TypeA {
       foo: number;
@@ -269,7 +288,37 @@ describe("async factories build stuff", () => {
     }, { startingSequenceNumber: 3 });
     const a = await factoryA.build();
     expect(a.foo).toEqual(4);
-  });
+  })
+  it("Can reset sequence number back to config default i.e. 0", async () => {
+    const widgetFactory = Async.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Async.each(i => i)
+    });
+
+    const widgets = await widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(2);
+
+    widgetFactory.resetSequenceNumber();
+
+    const moreWidgets = await widgetFactory.buildList(3);
+    expect(moreWidgets[2].id).toBe(2);
+  })
+  it("Can reset sequence number back to non-config default", async () => {
+    const widgetFactory = Async.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Async.each(i => i)
+    }, {
+        startingSequenceNumber: 100
+      });
+
+    const widgets = await widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(102);
+
+    widgetFactory.resetSequenceNumber();
+
+    const moreWidgets = await widgetFactory.buildList(3);
+    expect(moreWidgets[2].id).toBe(102);
+  })
   it("clones deeply nested values", async () => {
     interface TypeA {
       bar: {

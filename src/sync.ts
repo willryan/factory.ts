@@ -23,12 +23,19 @@ export class Derived<TOwner, TProperty> {
 
 export class Factory<T> {
   private seqNum: number;
+  private getStartingSequenceNumber = () => this.config && this.config.startingSequenceNumber || 0;
+
   constructor(readonly builder: Builder<T>, private readonly config: SyncFactoryConfig | undefined) {
-    this.seqNum = this.config && this.config.startingSequenceNumber || 0;
+    this.seqNum = this.getStartingSequenceNumber();
+  }
+
+  public resetSequenceNumber() {
+    this.seqNum = this.getStartingSequenceNumber();
   }
 
   public build(item?: RecPartial<T>): T {
     const seqNum = this.seqNum;
+    this.seqNum++;
     const base = buildBase(seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
     if (item) {
@@ -40,7 +47,6 @@ export class Factory<T> {
         (v as any)[der.key] = der.derived.build(v, seqNum);
       }
     }
-    this.seqNum++;
     return v;
   }
 

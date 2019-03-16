@@ -13,6 +13,11 @@ interface ChildType {
   grade: number;
 }
 
+interface WidgetType {
+  name: string;
+  id: number;
+}
+
 describe("factories build stuff", () => {
   const childFactory = Factory.makeFactory<ChildType>({
     name: "Kid",
@@ -219,20 +224,50 @@ describe("factories build stuff", () => {
     const a = factoryA.build();
     expect(a.foo).toEqual(4);
   })
-  it("clones deeply nested values", () => {
-    interface TypeA {
-      bar: {
-        baz: string;
-      }
-    }
-    const factoryA = Factory.makeFactory<TypeA>({
-      bar: {
-        baz: "should-be-immutable"
-      }
+  it("Can reset sequence number back to non-config default i.e. 0", () => {
+    const widgetFactory = Factory.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Factory.each(i => i)
     });
-    const a = factoryA.build();
-    const b = factoryA.build();
-    a.bar.baz = "is-not-immutable";
-    expect(b.bar.baz).toEqual("should-be-immutable")
+
+    const widgets = widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(2);
+
+    widgetFactory.resetSequenceNumber();
+
+    const moreWidgets = widgetFactory.buildList(3);
+    expect(moreWidgets[2].id).toBe(2);
+  })
+  it("Can reset sequence number back to config default", () => {
+    const widgetFactory = Factory.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Factory.each(i => i)
+    }, {
+        startingSequenceNumber: 100
+      });
+
+    const widgets = widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(102);
+
+    widgetFactory.resetSequenceNumber();
+
+    const moreWidgets = widgetFactory.buildList(3);
+    expect(moreWidgets[2].id).toBe(102);
+  })
+});
+it("clones deeply nested values", () => {
+  interface TypeA {
+    bar: {
+      baz: string;
+    }
+  }
+  const factoryA = Factory.makeFactory<TypeA>({
+    bar: {
+      baz: "should-be-immutable"
+    }
   });
+  const a = factoryA.build();
+  const b = factoryA.build();
+  a.bar.baz = "is-not-immutable";
+  expect(b.bar.baz).toEqual("should-be-immutable")
 });

@@ -50,12 +50,19 @@ export interface IFactory<T, U> {
 
 export class Factory<T> implements IFactory<T, T> {
   private seqNum: number;
+  private getStartingSequenceNumber = () => this.config && this.config.startingSequenceNumber || 0;
+  
   constructor(readonly builder: Builder<T>, private readonly config: AsyncFactoryConfig | undefined) {
-    this.seqNum = this.config && this.config.startingSequenceNumber || 0;
+    this.seqNum = this.getStartingSequenceNumber();
+  }
+
+  public resetSequenceNumber() {
+    this.seqNum = this.getStartingSequenceNumber();
   }
 
   public async build(item?: RecPartial<T>): Promise<T> {
     const seqNum = this.seqNum;
+    this.seqNum++;
     const base = await buildBase(seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
     if (item) {
@@ -67,7 +74,6 @@ export class Factory<T> implements IFactory<T, T> {
         (v as any)[der.key] = await der.derived.build(v, seqNum);
       }
     }
-    this.seqNum++;
     return lift(v);
   }
 
@@ -94,12 +100,13 @@ export class Factory<T> implements IFactory<T, T> {
     return v;
   }
 
-  public buildList(count: number, item?: RecPartial<T>): Promise<T[]> {
-    const ts: Promise<T>[] = Array(count); // allocate to correct size
+  public async buildList(count: number, item?: RecPartial<T>): Promise<T[]> {
+    const ts: T[] = Array(count); // allocate to correct size
+    // don't run in parallel, so that seq num works predictably
     for (let i = 0; i < count; i++) {
-      ts[i] = this.build(item);
+      ts[i] = await this.build(item);
     }
-    return Promise.all(ts);
+    return ts;
   }
 
   public extend(def: RecPartial<Builder<T>>): Factory<T> {
