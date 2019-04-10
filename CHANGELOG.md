@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.5] - 2019-04-10
+
+- Moved tslint to devDependencies.
+
 ## [0.4.4] - 2019-03-16
 
 - Added `resetSequenceNumber()` function.

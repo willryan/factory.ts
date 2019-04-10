@@ -1,6 +1,6 @@
 {
   "name": "factory.ts",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "license": "MIT",
   "description": "A Typescript test data factory similar to factory_bot and rosie",
   "scripts": {
