@@ -53,13 +53,13 @@
     "ts-jest": "^20.0.7",
     "ts-loader": "^4.4.2",
     "ts-node": "^7.0.0",
+    "tslint": "^5.11.0",
     "typescript": "3.2.1",
     "webpack": "^1.14.0",
     "webpack-dev-server": "^1.16.2"
   },
   "dependencies": {
     "clone-deep": "^4.0.1",
-    "source-map-support": "^0.5.9",
-    "tslint": "^5.11.0"
+    "source-map-support": "^0.5.9"
   }
 }
