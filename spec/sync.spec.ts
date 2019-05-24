@@ -1,5 +1,4 @@
-import * as Factory from "../src/sync";
-import { makeFactory } from "../src/sync";
+import * as Sync from "../src/sync";
 
 interface ParentType {
   name: string;
@@ -19,14 +18,14 @@ interface WidgetType {
 }
 
 describe("factories build stuff", () => {
-  const childFactory = Factory.makeFactory<ChildType>({
+  const childFactory = Sync.makeFactory<ChildType>({
     name: "Kid",
     grade: 1
   });
-  const parentFactory = Factory.makeFactory<ParentType>({
+  const parentFactory = Sync.makeFactory<ParentType>({
     name: "Parent",
-    birthday: Factory.each(i => new Date(`2017/05/${i + 1}`)),
-    children: Factory.each(() => []),
+    birthday: Sync.each(i => new Date(`2017/05/${i + 1}`)),
+    children: Sync.each(() => []),
     spouse: null
   });
   it("makes an object from a factory", () => {
@@ -60,10 +59,10 @@ describe("factories build stuff", () => {
     expect(susan.children.map(c => c.name)).toEqual(["Jimmy", "Alice"]);
   });
   it("can refer to other factories", () => {
-    const parentWithKidsFactory = Factory.makeFactory<ParentType>({
+    const parentWithKidsFactory = Sync.makeFactory<ParentType>({
       name: "Timothy",
-      birthday: Factory.each(i => new Date(`2017/05/${i}`)),
-      children: Factory.each(() => [
+      birthday: Sync.each(i => new Date(`2017/05/${i}`)),
+      children: Sync.each(() => [
         childFactory.build({ name: "Bobby" }),
         childFactory.build({ name: "Jane" })
       ]),
@@ -76,7 +75,7 @@ describe("factories build stuff", () => {
   });
   it("can extend existing factories", () => {
     const geniusFactory = childFactory.extend({
-      grade: Factory.each(i => (i + 1) * 2)
+      grade: Sync.each(i => (i + 1) * 2)
     });
     const colin = geniusFactory.build({ name: "Colin" });
     expect(colin.grade).toEqual(2);
@@ -89,9 +88,9 @@ describe("factories build stuff", () => {
       readonly lastName: string;
       readonly fullName: string;
     }
-    const personFactory = Factory.makeFactory<Person>({
+    const personFactory = Sync.makeFactory<Person>({
       firstName: "Double-O",
-      lastName: Factory.each(() => "Bond"),
+      lastName: Sync.each(() => "Bond"),
       fullName: ""
     }).withDerivation("fullName", p => `${p.firstName} ${p.lastName}`);
     //.withDerivation2(['firstName','lastName'],'fullName', (fn, ln) => `${fn} ${ln}`);
@@ -109,11 +108,11 @@ describe("factories build stuff", () => {
     }
   });
   it("can combine factories", () => {
-    const timeStamps = makeFactory({
-      createdAt: Factory.each(() => new Date()),
-      updatedAt: Factory.each(() => new Date())
+    const timeStamps = Sync.makeFactory({
+      createdAt: Sync.each(() => new Date()),
+      updatedAt: Sync.each(() => new Date())
     });
-    const softDelete = makeFactory({
+    const softDelete = Sync.makeFactory({
       isDeleted: false
     });
     interface Post {
@@ -128,12 +127,12 @@ describe("factories build stuff", () => {
       updatedAt: Date;
       isDeleted: boolean;
     }
-    const postFactory: Factory.Factory<Post> = makeFactory({
+    const postFactory: Sync.Factory<Post> = Sync.makeFactory({
       content: "lorem ipsum"
     })
       .combine(timeStamps)
       .combine(softDelete);
-    const userFactory: Factory.Factory<User> = makeFactory({
+    const userFactory: Sync.Factory<User> = Sync.makeFactory({
       email: "test@user.com"
     })
       .combine(timeStamps)
@@ -162,7 +161,7 @@ describe("factories build stuff", () => {
       };
     }
 
-    const groceryStoreFactory = Factory.makeFactory<IGroceryStore>({
+    const groceryStoreFactory = Sync.makeFactory<IGroceryStore>({
       aisle: {
         name: "Junk Food Aisle",
         typeOfFood: "Junk Food",
@@ -187,8 +186,8 @@ describe("factories build stuff", () => {
       bar: string;
       recur: null | TypeA;
     }
-    const factoryA = Factory.makeFactory<TypeA>({
-      foo: Factory.each(n => n),
+    const factoryA = Sync.makeFactory<TypeA>({
+      foo: Sync.each(n => n),
       bar: "hello",
       recur: null
     });
@@ -220,9 +219,9 @@ describe("factories build stuff", () => {
       foo: number;
       bar: string;
     }
-    const factoryA = Factory.makeFactory<TypeA>(
+    const factoryA = Sync.makeFactory<TypeA>(
       {
-        foo: Factory.each(n => n + 1),
+        foo: Sync.each(n => n + 1),
         bar: "hello"
       },
       { startingSequenceNumber: 3 }
@@ -231,9 +230,9 @@ describe("factories build stuff", () => {
     expect(a.foo).toEqual(4);
   });
   it("Can reset sequence number back to non-config default i.e. 0", () => {
-    const widgetFactory = Factory.makeFactory<WidgetType>({
+    const widgetFactory = Sync.makeFactory<WidgetType>({
       name: "Widget",
-      id: Factory.each(i => i)
+      id: Sync.each(i => i)
     });
 
     const widgets = widgetFactory.buildList(3);
@@ -245,10 +244,10 @@ describe("factories build stuff", () => {
     expect(moreWidgets[2].id).toBe(2);
   });
   it("Can reset sequence number back to config default", () => {
-    const widgetFactory = Factory.makeFactory<WidgetType>(
+    const widgetFactory = Sync.makeFactory<WidgetType>(
       {
         name: "Widget",
-        id: Factory.each(i => i)
+        id: Sync.each(i => i)
       },
       {
         startingSequenceNumber: 100
@@ -269,7 +268,7 @@ describe("factories build stuff", () => {
         baz: string;
       };
     }
-    const factoryA = Factory.makeFactory<TypeA>({
+    const factoryA = Sync.makeFactory<TypeA>({
       bar: {
         baz: "should-be-immutable"
       }
@@ -284,7 +283,7 @@ describe("factories build stuff", () => {
       foreignId: string;
       name: string;
     }
-    const factoryA = Factory.makeFactoryWithRequired<DbRecord, "foreignId">({
+    const factoryA = Sync.makeFactoryWithRequired<DbRecord, "foreignId">({
       name: "hello"
     });
     // compile failures
