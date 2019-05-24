@@ -120,6 +120,41 @@ Derivations are processed in the order they are defined, and all `withDerivation
 
 Finally, you could instantiate a `Derived<TOwner,TProperty>` for the value of a property inside a `Factory.makeFactory` definition, but the type inference can't help you as much - you'll have to indicate the type of TOwner and TProperty.
 
+### Required Properties
+
+Sometimes you may want to generate a type where some properties to be required every time you call `build()`. The most common example would be non-null foreign keys in a database. In this case, there's no meaningful value generator you can provide, at least not synchronously.
+
+```typescript
+import * as Factory from "factory.ts";
+
+interface Person {
+  id: number;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  age: number;
+  parent_id: number;
+}
+
+const personFactory = Factory.Sync.makeFactoryWithRequired<Person, "parent_id">(
+  {
+    id: Factory.each(i => i),
+    firstName: "Bob",
+    lastName: "Smith",
+    fullName: "Robert J. Smith, Jr.",
+    age: Factory.each(i => 20 + (i % 10))
+  }
+);
+
+const invalid = personFactory.build(); // compile error - need base item with { parent_id }
+const invalid2 = personFactory.build({}); // compile error - need base item with { parent_id }
+const invalid3 = personFactory.build({ firstName: "Sue" }); // compile error - need base item with { parent_id }
+const valid2 = personFactory.build({ parent_id: 3 });
+const valid = personFactory.build({ parent_id: 5, firstName: "Sue" });
+```
+
+Not the use of `makeFactoryWithRequired()` to specify required keys.
+
 ## Async Factories
 
 Async factories support all the same methods as sync factories, but you can also provide generators that create Promise<T> instead of T. Consequently each property may or may not use asynchronicity for generation, but the final factory requires only one await.
