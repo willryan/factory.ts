@@ -24,12 +24,15 @@ describe("async factories build stuff", () => {
     name: "Kid",
     grade: 1
   });
-  const parentFactory = Async.makeFactory<ParentType>({
-    name: "Parent",
-    birthday: Async.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
-    children: Async.each(() => []),
-    spouse: null
-  }, { startingSequenceNumber: 1 });
+  const parentFactory = Async.makeFactory<ParentType>(
+    {
+      name: "Parent",
+      birthday: Async.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
+      children: Async.each(() => []),
+      spouse: null
+    },
+    { startingSequenceNumber: 1 }
+  );
   it("makes an object from a factory", async () => {
     const jimmy = await childFactory.build({ name: "Jimmy" });
     expect(jimmy.name).toEqual("Jimmy");
@@ -253,12 +256,15 @@ describe("async factories build stuff", () => {
     expect(ted.children[1]!.name).toEqual("Amy");
   });
   it("can create async factories from sync builders", async () => {
-    const parentFactory = Async.makeFactoryFromSync<ParentType>({
-      name: "Parent",
-      birthday: Sync.each(i => new Date(`2017/05/${i}`)),
-      children: Sync.each(() => []),
-      spouse: null
-    }, { startingSequenceNumber: 1 });
+    const parentFactory = Async.makeFactoryFromSync<ParentType>(
+      {
+        name: "Parent",
+        birthday: Sync.each(i => new Date(`2017/05/${i}`)),
+        children: Sync.each(() => []),
+        spouse: null
+      },
+      { startingSequenceNumber: 1 }
+    );
     const susan = await parentFactory.build({ name: "Susan" });
     expect(susan.name).toEqual("Susan");
     expect(susan.birthday.getTime()).toEqual(new Date("2017/05/01").getTime());
@@ -270,25 +276,28 @@ describe("async factories build stuff", () => {
     }
     const factoryA = Async.makeFactory<TypeA>({
       foo: Async.each(n => n),
-      bar: "hello",
+      bar: "hello"
     });
     const a = await factoryA.buildList(3);
     expect(a[0].foo).toEqual(0);
     expect(a[1].foo).toEqual(1);
     expect(a[2].foo).toEqual(2);
-  })
+  });
   it("allows custom seq num start", async () => {
     interface TypeA {
       foo: number;
       bar: string;
     }
-    const factoryA = Async.makeFactory<TypeA>({
-      foo: Async.each(n => n + 1),
-      bar: "hello",
-    }, { startingSequenceNumber: 3 });
+    const factoryA = Async.makeFactory<TypeA>(
+      {
+        foo: Async.each(n => n + 1),
+        bar: "hello"
+      },
+      { startingSequenceNumber: 3 }
+    );
     const a = await factoryA.build();
     expect(a.foo).toEqual(4);
-  })
+  });
   it("Can reset sequence number back to config default i.e. 0", async () => {
     const widgetFactory = Async.makeFactory<WidgetType>({
       name: "Widget",
@@ -302,14 +311,17 @@ describe("async factories build stuff", () => {
 
     const moreWidgets = await widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(2);
-  })
+  });
   it("Can reset sequence number back to non-config default", async () => {
-    const widgetFactory = Async.makeFactory<WidgetType>({
-      name: "Widget",
-      id: Async.each(i => i)
-    }, {
+    const widgetFactory = Async.makeFactory<WidgetType>(
+      {
+        name: "Widget",
+        id: Async.each(i => i)
+      },
+      {
         startingSequenceNumber: 100
-      });
+      }
+    );
 
     const widgets = await widgetFactory.buildList(3);
     expect(widgets[2].id).toBe(102);
@@ -318,7 +330,7 @@ describe("async factories build stuff", () => {
 
     const moreWidgets = await widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(102);
-  })
+  });
   it("clones deeply nested values", async () => {
     interface TypeA {
       bar: {
@@ -334,5 +346,81 @@ describe("async factories build stuff", () => {
     const b = await factoryA.build();
     a.bar.baz = "is-not-immutable";
     expect(b.bar.baz).toEqual("should-be-immutable");
+  });
+  describe("required fields", () => {
+    interface DbRecordUnsaved {
+      foreignId: string;
+      name: string;
+    }
+    interface DbRecordSaved extends DbRecordUnsaved {
+      id: number;
+    }
+    function makeFactoryA() {
+      return Async.makeFactoryWithRequired<DbRecordUnsaved, "foreignId">({
+        name: "hello"
+      }).transform<DbRecordSaved>(t => ({
+        ...t,
+        name: t.name + t.name,
+        id: t.name.length
+      }));
+    }
+
+    it("supports build", async () => {
+      const factoryA = makeFactoryA();
+      // compile failures
+      //const z = await factoryA.build();
+      //const z = await factoryA.build({ });
+      //const z = await factoryA.build({ name: "uhoh" });
+
+      // data checks
+      const a = await factoryA.build({ foreignId: "fk1" });
+      expect(a).toEqual({ name: "hellohello", foreignId: "fk1", id: 5 });
+      const b = await factoryA.build({ foreignId: "fk2", name: "goodbye" });
+      expect(b).toEqual({ name: "goodbyegoodbye", foreignId: "fk2", id: 7 });
+    });
+
+    it("supports buildList", async () => {
+      const factoryA = makeFactoryA();
+      // compile failures
+      //const [y,z] = await factoryA.buildList(5);
+      //const [y,z] = await factoryA.buildList(5, {});
+      //const [y,z] = await factoryA.buildList(5, { name: 'hello' });
+
+      // data checks
+      const [c, d] = await factoryA.buildList(2, { foreignId: "fk3" });
+      expect(c).toEqual({ name: "hellohello", id: 5, foreignId: "fk3" });
+      expect(d).toEqual({ name: "hellohello", id: 5, foreignId: "fk3" });
+    });
+
+    it("supports build from sync", async () => {
+      interface DbRecord {
+        foreignId: string;
+        name: string;
+      }
+      const factoryA = Sync.makeFactoryWithRequired<DbRecord, "foreignId">({
+        name: "hello"
+      });
+      const factoryAPrime = Async.makeFactoryFromSync(
+        factoryA.builder
+      ).transform(v => ({
+        fk: v.foreignId,
+        name: v.name.toUpperCase()
+      }));
+
+      // compile failures
+      //const z = await factoryAPrime.build();
+      //const z = await factoryAPrime.build({});
+      //const z = await factoryAPrime.build({ name: "hi" });
+      const a = await factoryAPrime.build({ foreignId: "fk" });
+      expect(a).toEqual({ fk: "fk", name: "HELLO" });
+
+      // compile failures
+      //const [y,z] = await factoryAPrime.buildList(5);
+      //const [y,z] = await factoryAPrime.buildList(5, {});
+      //const [y,z] = await factoryAPrime.buildList(5, { name: 'hello' });
+      const [b, c] = await factoryAPrime.buildList(5, { foreignId: "fkmany" });
+      expect(b).toEqual({ name: "HELLO", fk: "fkmany" });
+      expect(c).toEqual({ name: "HELLO", fk: "fkmany" });
+    });
   });
 });

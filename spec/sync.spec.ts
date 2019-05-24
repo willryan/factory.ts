@@ -191,20 +191,23 @@ describe("factories build stuff", () => {
       foo: Factory.each(n => n),
       bar: "hello",
       recur: null
-    })
-    const factoryAPrime = factoryA.withDerivation("foo", (_v, n) => {
-      // inner: factoryA.build().foo should be 0, n should be 1
-      // outer: factoryA.build().foo should be 1, n should be 2
-      const foo = factoryA.build().foo;
-      return foo * 100 + n; // 001 : 102
-    }).withDerivation("bar", (v, n) => {
-      // inner: n should be 2, v.foo should be 001 -> "001:1"
-      // outer: n should be 3, v.foo should be 102 -> "102:2"
-      return v.foo + ":" + n;
     });
+    const factoryAPrime = factoryA
+      .withDerivation("foo", (_v, n) => {
+        // inner: factoryA.build().foo should be 0, n should be 1
+        // outer: factoryA.build().foo should be 1, n should be 2
+        const foo = factoryA.build().foo;
+        return foo * 100 + n; // 001 : 102
+      })
+      .withDerivation("bar", (v, n) => {
+        // inner: n should be 2, v.foo should be 001 -> "001:1"
+        // outer: n should be 3, v.foo should be 102 -> "102:2"
+        return v.foo + ":" + n;
+      });
     const justA = factoryAPrime.build({ foo: 99 }); // seq 1
     expect(justA.foo).toEqual(99);
-    const aWithA = factoryAPrime.build({ // outer: starts on seq 3
+    const aWithA = factoryAPrime.build({
+      // outer: starts on seq 3
       recur: factoryAPrime.build() // inner: starts on seq 2
     });
     expect(aWithA.foo).toEqual(102);
@@ -217,13 +220,16 @@ describe("factories build stuff", () => {
       foo: number;
       bar: string;
     }
-    const factoryA = Factory.makeFactory<TypeA>({
-      foo: Factory.each(n => n + 1),
-      bar: "hello",
-    }, { startingSequenceNumber: 3 });
+    const factoryA = Factory.makeFactory<TypeA>(
+      {
+        foo: Factory.each(n => n + 1),
+        bar: "hello"
+      },
+      { startingSequenceNumber: 3 }
+    );
     const a = factoryA.build();
     expect(a.foo).toEqual(4);
-  })
+  });
   it("Can reset sequence number back to non-config default i.e. 0", () => {
     const widgetFactory = Factory.makeFactory<WidgetType>({
       name: "Widget",
@@ -237,14 +243,17 @@ describe("factories build stuff", () => {
 
     const moreWidgets = widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(2);
-  })
+  });
   it("Can reset sequence number back to config default", () => {
-    const widgetFactory = Factory.makeFactory<WidgetType>({
-      name: "Widget",
-      id: Factory.each(i => i)
-    }, {
+    const widgetFactory = Factory.makeFactory<WidgetType>(
+      {
+        name: "Widget",
+        id: Factory.each(i => i)
+      },
+      {
         startingSequenceNumber: 100
-      });
+      }
+    );
 
     const widgets = widgetFactory.buildList(3);
     expect(widgets[2].id).toBe(102);
@@ -253,21 +262,50 @@ describe("factories build stuff", () => {
 
     const moreWidgets = widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(102);
-  })
-});
-it("clones deeply nested values", () => {
-  interface TypeA {
-    bar: {
-      baz: string;
-    }
-  }
-  const factoryA = Factory.makeFactory<TypeA>({
-    bar: {
-      baz: "should-be-immutable"
-    }
   });
-  const a = factoryA.build();
-  const b = factoryA.build();
-  a.bar.baz = "is-not-immutable";
-  expect(b.bar.baz).toEqual("should-be-immutable")
+  it("clones deeply nested values", () => {
+    interface TypeA {
+      bar: {
+        baz: string;
+      };
+    }
+    const factoryA = Factory.makeFactory<TypeA>({
+      bar: {
+        baz: "should-be-immutable"
+      }
+    });
+    const a = factoryA.build();
+    const b = factoryA.build();
+    a.bar.baz = "is-not-immutable";
+    expect(b.bar.baz).toEqual("should-be-immutable");
+  });
+  it("supports required fields", () => {
+    interface DbRecord {
+      foreignId: string;
+      name: string;
+    }
+    const factoryA = Factory.makeFactoryWithRequired<DbRecord, "foreignId">({
+      name: "hello"
+    });
+    // compile failures
+    //const z = factoryA.build();
+    //const z = factoryA.build({ });
+    //const z = factoryA.build({ name: "uhoh" });
+
+    // data checks
+    const a = factoryA.build({ foreignId: "fk1" });
+    expect(a).toEqual({ name: "hello", foreignId: "fk1" });
+    const b = factoryA.build({ foreignId: "fk2", name: "goodbye" });
+    expect(b).toEqual({ name: "goodbye", foreignId: "fk2" });
+
+    // more compile failures
+    //const [y,z] = factoryA.buildList(5);
+    //const [y,z] = factoryA.buildList(5, {});
+    //const [y,z] = factoryA.buildList(5, { name: 'hello' });
+
+    // data checks
+    const [c, d] = factoryA.buildList(2, { foreignId: "fk3" });
+    expect(c).toEqual({ name: "hello", foreignId: "fk3" });
+    expect(d).toEqual({ name: "hello", foreignId: "fk3" });
+  });
 });
