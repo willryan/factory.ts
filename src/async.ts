@@ -7,11 +7,13 @@ export interface AsyncFactoryConfig {
   readonly startingSequenceNumber?: number;
 }
 
-//export type FactoryFunc<T, U = T> = (item?: RecPartial<T>) => Promise<U>;
-// export type ListFactoryFunc<T, U = T> = (
-//   count: number,
-//   item?: RecPartial<T>
-// ) => Promise<U[]>;
+export type FactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
+  ? (item?: RecPartial<T>) => Promise<U>
+  : (item: RecPartial<T> & Omit<T, K>) => Promise<U>;
+
+export type ListFactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
+  ? (count: number, item?: RecPartial<T>) => Promise<U[]>
+  : (count: number, item: RecPartial<T> & Omit<T, K>) => Promise<U[]>;
 
 function isPromise<T extends Object>(t: T | Promise<T>): t is Promise<T> {
   return typeof (t as any)["then"] === "function";
@@ -24,14 +26,6 @@ export function lift<T>(t: T | Promise<T>): Promise<T> {
     return Promise.resolve(t);
   }
 }
-
-export type FactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
-  ? (item?: RecPartial<T>) => Promise<U>
-  : (item: RecPartial<T> & Omit<T, K>) => Promise<U>;
-
-export type ListFactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
-  ? (count: number, item?: RecPartial<T>) => Promise<U[]>
-  : (count: number, item: RecPartial<T> & Omit<T, K>) => Promise<U[]>;
 
 export class Generator<T> {
   constructor(readonly func: (seq: number) => T | Promise<T>) {}
