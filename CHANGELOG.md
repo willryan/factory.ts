@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.0] - 2019-05-24
+
+- Added ability to create factories where some props are required to build.
+- Removed several dependences that were not actually being used.
+- Improve some documentation in the README.md.
+
 ## [0.4.5] - 2019-04-10
 
 - Moved tslint to devDependencies.
