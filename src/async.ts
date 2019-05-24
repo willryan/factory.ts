@@ -1,17 +1,19 @@
-import { RecPartial } from "./shared";
+import { RecPartial, Omit, recursivePartialOverride } from "./shared";
 import * as Sync from "./sync";
 import { Async } from ".";
 import * as cloneDeep from "clone-deep";
 
 export interface AsyncFactoryConfig {
-  readonly startingSequenceNumber?: number
+  readonly startingSequenceNumber?: number;
 }
 
-export type FactoryFunc<T, U = T> = (item?: RecPartial<T>) => Promise<U>;
-export type ListFactoryFunc<T, U = T> = (
-  count: number,
-  item?: RecPartial<T>
-) => Promise<U[]>;
+export type FactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
+  ? (item?: RecPartial<T>) => Promise<U>
+  : (item: RecPartial<T> & Omit<T, K>) => Promise<U>;
+
+export type ListFactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
+  ? (count: number, item?: RecPartial<T>) => Promise<U[]>
+  : (count: number, item: RecPartial<T> & Omit<T, K>) => Promise<U[]>;
 
 function isPromise<T extends Object>(t: T | Promise<T>): t is Promise<T> {
   return typeof (t as any)["then"] === "function";
@@ -26,7 +28,7 @@ export function lift<T>(t: T | Promise<T>): Promise<T> {
 }
 
 export class Generator<T> {
-  constructor(readonly func: (seq: number) => T | Promise<T>) { }
+  constructor(readonly func: (seq: number) => T | Promise<T>) {}
   public build(seq: number): Promise<T> {
     return lift(this.func(seq));
   }
@@ -37,22 +39,27 @@ export class Derived<TOwner, TProperty> {
       owner: TOwner,
       seq: number
     ) => TProperty | Promise<TProperty>
-  ) { }
+  ) {}
   public build(owner: TOwner, seq: number): Promise<TProperty> {
     return lift(this.func(owner, seq));
   }
 }
 
-export interface IFactory<T, U> {
-  build: FactoryFunc<T, U>;
-  buildList: ListFactoryFunc<T, U>;
+export interface IFactory<T, K extends keyof T, U> {
+  build: FactoryFunc<T, K, U>;
+  buildList: ListFactoryFunc<T, K, U>;
 }
 
-export class Factory<T> implements IFactory<T, T> {
+export class Factory<T, K extends keyof T = keyof T>
+  implements IFactory<T, K, T> {
   private seqNum: number;
-  private getStartingSequenceNumber = () => this.config && this.config.startingSequenceNumber || 0;
-  
-  constructor(readonly builder: Builder<T>, private readonly config: AsyncFactoryConfig | undefined) {
+  private getStartingSequenceNumber = () =>
+    (this.config && this.config.startingSequenceNumber) || 0;
+
+  constructor(
+    readonly builder: Builder<T, K>,
+    private readonly config: AsyncFactoryConfig | undefined
+  ) {
     this.seqNum = this.getStartingSequenceNumber();
   }
 
@@ -60,13 +67,13 @@ export class Factory<T> implements IFactory<T, T> {
     this.seqNum = this.getStartingSequenceNumber();
   }
 
-  public async build(item?: RecPartial<T>): Promise<T> {
+  public build = (async (item?: RecPartial<T> & Omit<T, K>): Promise<T> => {
     const seqNum = this.seqNum;
     this.seqNum++;
     const base = await buildBase(seqNum, this.builder);
     let v = Object.assign({}, base.value); //, item);
     if (item) {
-      v = Factory.recursivePartialOverride(v, item);
+      v = recursivePartialOverride(v, item);
     }
     const keys = Object.keys(item || {});
     for (const der of base.derived) {
@@ -75,60 +82,44 @@ export class Factory<T> implements IFactory<T, T> {
       }
     }
     return lift(v);
-  }
+  }) as FactoryFunc<T, K, T>;
 
-  private static recursivePartialOverride<U>(x: U, y: RecPartial<U>): U {
-    if (y === undefined || y === null) return x;
-    const objProto = Object.getPrototypeOf({});
-    if (Object.getPrototypeOf(y) != objProto) return y as any;
-    let v = Object.assign({}, x);
-    let yKeys = Object.keys(y);
-    for (const key of Object.keys(v)) {
-      if (yKeys.indexOf(key) >= 0) {
-        const itemKeyVal = (y as any)[key];
-        if (null != itemKeyVal && typeof itemKeyVal === "object") {
-          const baseKeyVal = (v as any)[key];
-          (v as any)[key] = Factory.recursivePartialOverride(
-            baseKeyVal,
-            itemKeyVal
-          );
-        } else {
-          (v as any)[key] = itemKeyVal;
-        }
-      }
-    }
-    return v;
-  }
-
-  public async buildList(count: number, item?: RecPartial<T>): Promise<T[]> {
+  public buildList = (async (
+    count: number,
+    item?: RecPartial<T> & Omit<T, K>
+  ): Promise<T[]> => {
     const ts: T[] = Array(count); // allocate to correct size
     // don't run in parallel, so that seq num works predictably
     for (let i = 0; i < count; i++) {
-      ts[i] = await this.build(item);
+      ts[i] = await this.build(item as any);
     }
     return ts;
-  }
+  }) as ListFactoryFunc<T, K, T>;
 
-  public extend(def: RecPartial<Builder<T>>): Factory<T> {
+  public extend(def: RecPartial<Builder<T, K>>): Factory<T, K> {
     const builder = Object.assign({}, this.builder, def);
     return new Factory(builder, this.config);
   }
 
-  public combine<U>(other: Factory<U>): Factory<T & U> {
-    const builder = Object.assign({}, this.builder, other.builder) as Builder<
-      T & U
-    >;
-    return new Factory<T & U>(builder, this.config);
+  public combine<U, K2 extends keyof U>(
+    other: Factory<U, K2>
+  ): Factory<T & U, K & K2> {
+    const builder = (Object.assign(
+      {},
+      this.builder,
+      other.builder
+    ) as any) as Builder<T & U, K & K2>;
+    return new Factory<T & U, K & K2>(builder, this.config);
   }
 
-  public transform<U>(fn: (t: T) => U | Promise<U>): TransformFactory<T, U> {
+  public transform<U>(fn: (t: T) => U | Promise<U>): TransformFactory<T, K, U> {
     return new TransformFactory(this, fn);
   }
 
   public withDerivation<KOut extends keyof T>(
     kOut: KOut,
     f: (v1: T, seq: number) => T[KOut] | Promise<T[KOut]>
-  ): Factory<T> {
+  ): Factory<T, K> {
     const partial: any = {};
     partial[kOut] = new Derived<T, T[KOut]>(f);
     return this.extend(partial);
@@ -138,7 +129,7 @@ export class Factory<T> implements IFactory<T, T> {
     kInput: [K1],
     kOut: KOut,
     f: (v1: T[K1], seq: number) => T[KOut] | Promise<T[KOut]>
-  ): Factory<T> {
+  ): Factory<T, K> {
     const partial: any = {};
     partial[kOut] = new Derived<T, T[KOut]>((t, i) => f(t[kInput[0]], i));
     return this.extend(partial);
@@ -152,7 +143,7 @@ export class Factory<T> implements IFactory<T, T> {
     kInput: [K1, K2],
     kOut: KOut,
     f: (v1: T[K1], v2: T[K2], seq: number) => T[KOut] | Promise<T[KOut]>
-  ): Factory<T> {
+  ): Factory<T, K> {
     const partial: any = {};
     partial[kOut] = new Derived<T, T[KOut]>((t, i) =>
       f(t[kInput[0]], t[kInput[1]], i)
@@ -174,7 +165,7 @@ export class Factory<T> implements IFactory<T, T> {
       v3: T[K3],
       seq: number
     ) => T[KOut] | Promise<T[KOut]>
-  ): Factory<T> {
+  ): Factory<T, K> {
     const partial: any = {};
     partial[kOut] = new Derived<T, T[KOut]>((t, i) =>
       f(t[kInput[0]], t[kInput[1]], t[kInput[2]], i)
@@ -198,7 +189,7 @@ export class Factory<T> implements IFactory<T, T> {
       v4: T[K4],
       seq: number
     ) => T[KOut] | Promise<T[KOut]>
-  ): Factory<T> {
+  ): Factory<T, K> {
     const partial: any = {};
     partial[kOut] = new Derived<T, T[KOut]>((t, i) =>
       f(t[kInput[0]], t[kInput[1]], t[kInput[2]], t[kInput[3]], i)
@@ -224,7 +215,7 @@ export class Factory<T> implements IFactory<T, T> {
       v5: T[K5],
       seq: number
     ) => T[KOut] | Promise<T[KOut]>
-  ): Factory<T> {
+  ): Factory<T, K> {
     const partial: any = {};
     partial[kOut] = new Derived<T, T[KOut]>((t, i) =>
       f(t[kInput[0]], t[kInput[1]], t[kInput[2]], t[kInput[3]], t[kInput[4]], i)
@@ -233,24 +224,28 @@ export class Factory<T> implements IFactory<T, T> {
   }
 }
 
-export class TransformFactory<T, U> implements IFactory<T, U> {
+export class TransformFactory<T, K extends keyof T, U>
+  implements IFactory<T, K, U> {
   constructor(
-    private readonly inner: Factory<T>,
+    private readonly inner: Factory<T, K>,
     private readonly transform: (t: T) => U | Promise<U>
-  ) { }
-  public async build(item?: RecPartial<T>): Promise<U> {
-    const v = await this.inner.build(item);
+  ) {}
+  public build = (async (item?: RecPartial<T> & Omit<T, K>): Promise<U> => {
+    const v = await this.inner.build(item as any);
     const u = await lift(this.transform(v));
     return u;
-  }
-  public async buildList(count: number, item?: RecPartial<T>): Promise<U[]> {
-    const vs = await this.inner.buildList(count, item);
+  }) as FactoryFunc<T, K, U>;
+  public buildList = (async (
+    count: number,
+    item?: RecPartial<T> & Omit<T, K>
+  ): Promise<U[]> => {
+    const vs = await this.inner.buildList(count, item as any);
     return Promise.all(vs.map(this.transform).map(lift));
-  }
+  }) as ListFactoryFunc<T, K, U>;
 }
 
-export type Builder<T> = {
-  [P in keyof T]: T[P] | Promise<T[P]> | Generator<T[P]> | Derived<T, T[P]>
+export type Builder<T, K extends keyof T = keyof T> = {
+  [P in K]: T[P] | Promise<T[P]> | Generator<T[P]> | Derived<T, T[P]>
 };
 
 export function val<T>(val: T): Generator<T> {
@@ -271,9 +266,9 @@ interface BaseBuild<T> {
   readonly derived: BaseDerived[];
 }
 
-async function buildBase<T>(
+async function buildBase<T, K extends keyof T>(
   seqNum: number,
-  builder: Builder<T>
+  builder: Builder<T, K>
 ): Promise<BaseBuild<T>> {
   const t: { [key: string]: any } = {};
   const keys = Object.getOwnPropertyNames(builder);
@@ -301,10 +296,23 @@ async function buildBase<T>(
   return { value: t as T, derived };
 }
 
-export function makeFactory<T>(builder: Builder<T>, config?: AsyncFactoryConfig): Factory<T> {
+export function makeFactory<T>(
+  builder: Builder<T, keyof T>,
+  config?: AsyncFactoryConfig
+): Factory<T, keyof T> {
   return new Factory(builder, config);
 }
 
-export function makeFactoryFromSync<T>(builder: Sync.Builder<T>, config?: AsyncFactoryConfig): Factory<T> {
-  return new Factory(builder as Async.Builder<T>, config);
+export function makeFactoryWithRequired<T, K extends keyof T>(
+  builder: Builder<T, Exclude<keyof T, K>>,
+  config?: AsyncFactoryConfig
+): Factory<T, Exclude<keyof T, K>> {
+  return new Factory(builder, config);
+}
+
+export function makeFactoryFromSync<T, K extends keyof T = keyof T>(
+  builder: Sync.Builder<T, K>,
+  config?: AsyncFactoryConfig
+): Factory<T, K> {
+  return new Factory(builder as Async.Builder<T, K>, config);
 }
