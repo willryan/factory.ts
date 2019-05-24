@@ -18,12 +18,14 @@ describe("pipelines", () => {
     name: "Kid",
     grade: 1
   });
-  const parentFactory = Factory.makeFactory<ParentType>({
-    name: "Parent",
-    birthday: Factory.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
-    children: Factory.each(() => []),
-    spouse: null
-  }, { startingSequenceNumber: 1 });
+  const parentFactory = Factory.makeFactoryWithRequired<ParentType, "spouse">(
+    {
+      name: "Parent",
+      birthday: Factory.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
+      children: Factory.each(() => [])
+    },
+    { startingSequenceNumber: 1 }
+  );
   const grandpaFactory = parentFactory.transform(parent => {
     return {
       ...parent,
@@ -42,12 +44,14 @@ describe("pipelines", () => {
       .addFactory(parentFactory, "dad", v =>
         Promise.resolve({
           name: "Dad",
-          children: [v.kiddo]
+          children: [v.kiddo],
+          spouse: null
         })
       )
       .addTxFactory(grandpaFactory, "gramps", v => ({
         name: "Gramps",
-        children: [v.dad]
+        children: [v.dad],
+        spouse: null
       }));
     const data = await p;
     expect(data.hello).toEqual("kitty");
@@ -58,12 +62,16 @@ describe("pipelines", () => {
     expect(data.kiddo.grade).toEqual(2);
     expect(data.kiddo.name).toEqual("Kid");
     expect(data.dad.name).toEqual("Dad");
-    expect(data.dad.birthday.getTime()).toEqual(new Date("2017/05/01").getTime());
+    expect(data.dad.birthday.getTime()).toEqual(
+      new Date("2017/05/01").getTime()
+    );
     expect(data.dad.children.length).toEqual(1);
     expect(data.dad.children[0]).toEqual(data.kiddo);
+    expect(data.dad.spouse).toBeNull();
     expect(data.gramps.name).toEqual("Gramps");
     expect(data.gramps.spoils).toEqual(true);
     expect(data.gramps.children.length).toEqual(1);
     expect(data.gramps.children[0]).toEqual(data.dad);
+    expect(data.gramps.spouse).toBeNull();
   });
 });

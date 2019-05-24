@@ -120,6 +120,33 @@ Derivations are processed in the order they are defined, and all `withDerivation
 
 Finally, you could instantiate a `Derived<TOwner,TProperty>` for the value of a property inside a `Factory.makeFactory` definition, but the type inference can't help you as much - you'll have to indicate the type of TOwner and TProperty.
 
+### Combining factories
+
+Sometimes you have two factories you want to combine into one. So essentially you have `(p: Partial<T>) => T` and `(p: Partial<U>) => U` and you want `(p: Partial<T & U>) => T & U`. That's what `combine()` is for.
+
+```typescript
+const timeStamps = Sync.makeFactory({
+  createdAt: Sync.each(() => new Date()),
+  updatedAt: Sync.each(() => new Date())
+});
+const softDelete = Sync.makeFactory({
+  isDeleted: false
+});
+interface Post {
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isDeleted: boolean;
+}
+const postFactory: Sync.Factory<Post> = makeFactory({
+  content: "lorem ipsum"
+})
+  .combine(timeStamps)
+  .combine(softDelete);
+```
+
+This pattern allows you to create a factory for a common subset of different types and just re-apply it.
+
 ### Required Properties
 
 Sometimes you may want to generate a type where some properties to be required every time you call `build()`. The most common example would be non-null foreign keys in a database. In this case, there's no meaningful value generator you can provide, at least not synchronously.
@@ -177,3 +204,5 @@ Each step in the pipeline can accept:
   - a function (optionally synchronous) returning a partial for the factory
 
 As noted above, each step can depend on the previous steps' data to make its contribution, and each step can be asynchronous. In the end you just await on the pipeline, and through the magic of Typescript you have a type-safe object whose keys are all the values you want to use in your test.
+
+See [pipeline.spec.ts](./spec/pipeline.spec.ts) for an example.
