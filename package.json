@@ -15,7 +15,7 @@
       "default"
     ],
     "transform": {
-      "\\.(js|ts)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      "\\.(js|ts)$": "ts-jest"
     },
     "testRegex": "./spec/.*\\.spec\\.ts$",
     "moduleFileExtensions": [
@@ -27,7 +27,9 @@
       "src",
       "node_modules"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/jest-setup.ts"
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest-setup.ts"
+    ]
   },
   "repository": "https://github.com/willryan/factory.ts",
   "engines": {
@@ -40,15 +42,15 @@
   ],
   "author": "Will Pleasant-Ryan",
   "devDependencies": {
-    "@types/jest": "^20.0.6",
-    "@types/node": "^7.0.4",
-    "jest": "^20.0.0",
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.12.14",
+    "jest": "^24.9.0",
     "jest-environment-node-debug": "^2.0.0",
-    "ts-jest": "^20.0.7",
-    "ts-loader": "^4.4.2",
-    "ts-node": "^7.0.0",
-    "tslint": "^5.11.0",
-    "typescript": "3.2.1"
+    "ts-jest": "^24.2.0",
+    "ts-loader": "^6.2.1",
+    "ts-node": "^8.5.4",
+    "tslint": "^5.20.1",
+    "typescript": "3.7.2"
   },
   "dependencies": {
     "clone-deep": "^4.0.1",
