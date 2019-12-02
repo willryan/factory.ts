@@ -66,7 +66,7 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
     key: K,
     partial: keyof T extends KT ? PipePartial<P, T> : PipePartialRec<P, T, KT>
   ): Pipeline<P & { [k in K]: T }> {
-    return this.addFactoryFunc(
+    return this.addFactoryFunc<T, T, K, KT>(
       ((v: any) => factory.build(v)) as any,
       key,
       partial
@@ -78,7 +78,7 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
     key: K,
     partial: keyof T extends KT ? PipePartial<P, T> : PipePartialRec<P, T, KT>
   ): Pipeline<P & { [k in K]: U }> {
-    return this.addFactoryFunc(
+    return this.addFactoryFunc<T, U, K, KT>(
       ((v: any) => factory.build(v)) as any,
       key,
       partial
