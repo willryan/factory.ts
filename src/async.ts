@@ -103,13 +103,13 @@ export class Factory<T, K extends keyof T = keyof T>
 
   public combine<U, K2 extends keyof U>(
     other: Factory<U, K2>
-  ): Factory<T & U, K & K2> {
-    const builder = (Object.assign(
+  ): Factory<T & U, K | K2> {
+    const builder: Builder<T & U, K | K2> = Object.assign(
       {},
       this.builder,
       other.builder
-    ) as any) as Builder<T & U, K & K2>;
-    return new Factory<T & U, K & K2>(builder, this.config);
+    ) as any;
+    return new Factory<T & U, K | K2>(builder, this.config);
   }
 
   public transform<U>(fn: (t: T) => U | Promise<U>): TransformFactory<T, K, U> {
