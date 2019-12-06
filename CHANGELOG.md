@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.1] - 2019-12-06
+
+- fix typing for combine() and 'required keys'
+- update TS version and other dependencies
+- jest setup fixes for library development
+
 ## [0.5.0] - 2019-05-24
 
 - Added ability to create factories where some props are required to build.
