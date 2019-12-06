@@ -6,7 +6,8 @@
     "module": "commonjs",
     "target": "es2015",
     "lib": [
-      "es2015"
+      "es2015",
+      "dom"
     ],
     "alwaysStrict": true,
     "strictFunctionTypes": true,
