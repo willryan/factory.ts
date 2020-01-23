@@ -331,6 +331,20 @@ describe("async factories build stuff", () => {
     const moreWidgets = await widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(102);
   });
+  it("Can reset sequence number to an arbitrary value", async () => {
+    const widgetFactory = Async.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Async.each(i => i)
+    });
+
+    const widgets = await widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(2);
+
+    widgetFactory.resetSequenceNumber(5);
+
+    const moreWidgets = await widgetFactory.buildList(3);
+    expect(moreWidgets[0].id).toBe(5);
+  });
   it("clones deeply nested values", async () => {
     interface TypeA {
       bar: {
