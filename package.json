@@ -26,9 +26,6 @@
     "moduleDirectories": [
       "src",
       "node_modules"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/jest-setup.ts"
     ]
   },
   "repository": "https://github.com/willryan/factory.ts",
