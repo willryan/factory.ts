@@ -19,15 +19,21 @@ export class Derived<TOwner, TProperty> {
   }
 }
 
-export type FactoryFunc<T, K extends keyof T> = keyof T extends K
-  ? (item?: RecPartial<T>) => T
-  : (item: RecPartial<T> & Omit<T, K>) => T;
+export type FactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
+  ? (item?: RecPartial<T>) => U
+  : (item: RecPartial<T> & Omit<T, K>) => U;
 
-export type ListFactoryFunc<T, K extends keyof T> = keyof T extends K
-  ? (count: number, item?: RecPartial<T>) => T[]
-  : (count: number, item: RecPartial<T> & Omit<T, K>) => T[];
+export type ListFactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
+  ? (count: number, item?: RecPartial<T>) => U[]
+  : (count: number, item: RecPartial<T> & Omit<T, K>) => U[];
 
-export class Factory<T, K extends keyof T = keyof T> {
+export interface IFactory<T, K extends keyof T, U> {
+  build: FactoryFunc<T, K, U>;
+  buildList: ListFactoryFunc<T, K, U>;
+}
+
+export class Factory<T, K extends keyof T = keyof T>
+  implements IFactory<T, K, T> {
   private seqNum: number;
   private getStartingSequenceNumber = () =>
     (this.config && this.config.startingSequenceNumber) || 0;
@@ -85,6 +91,10 @@ export class Factory<T, K extends keyof T = keyof T> {
       other.builder
     ) as any;
     return new Factory<T & U, K | K2>(builder, this.config);
+  }
+
+  public transform<U>(fn: (t: T) => U): TransformFactory<T, K, U> {
+    return new TransformFactory<T, K, U>(this, fn);
   }
 
   public withDerivation<KOut extends keyof T>(
@@ -182,6 +192,26 @@ export class Factory<T, K extends keyof T = keyof T> {
     );
     return this.extend(partial);
   }
+}
+
+export class TransformFactory<T, K extends keyof T, U>
+  implements IFactory<T, K, U> {
+  constructor(
+    private readonly inner: Factory<T, K>,
+    private readonly transform: (t: T) => U
+  ) {}
+  public build = ((item?: RecPartial<T> & Omit<T, K>): U => {
+    const v = this.inner.build(item as any);
+    const u = this.transform(v);
+    return u;
+  }) as FactoryFunc<T, K, U>;
+  public buildList = ((
+    count: number,
+    item?: RecPartial<T> & Omit<T, K>
+  ): U[] => {
+    const vs = this.inner.buildList(count, item as any);
+    return vs.map(this.transform);
+  }) as ListFactoryFunc<T, K, U>;
 }
 
 export type Builder<T, K extends keyof T = keyof T> = {

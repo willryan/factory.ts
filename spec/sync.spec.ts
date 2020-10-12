@@ -1,7 +1,7 @@
 import * as Sync from "../src/sync";
 
 interface ParentType {
-  name: string;
+  name: string | null;
   birthday: Date;
   children: ChildType[];
   spouse: ParentType | null;
@@ -179,6 +179,22 @@ describe("factories build stuff", () => {
     expect(aStore.aisle.budget).toEqual(9999);
     expect(aStore.aisle.typeOfFood).toEqual("Junk Food");
     expect(aStore.aisle.tags).toEqual(["a", "b"]);
+  });
+  it("can transform type", async () => {
+    const makeAdult = childFactory.transform<ParentType>(t => {
+      const birthday = `${2018 - t.grade - 25}/05/10`;
+      return {
+        name: t.name,
+        birthday: new Date(birthday),
+        spouse: null,
+        children: []
+      };
+    });
+    const susan = makeAdult.build({ name: "Susan", grade: 5 });
+    expect(susan.birthday.getTime()).toEqual(new Date("1988/05/10").getTime());
+    expect(susan.name).toEqual("Susan");
+    expect(susan.spouse).toEqual(null);
+    expect(susan.children.length).toEqual(0);
   });
   it("supports recursive factories", () => {
     interface TypeA {
