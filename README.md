@@ -8,6 +8,20 @@ Version 0.3.2 introduces a new set of async factory methods for cases where asyn
 
 Version 0.3.3 introduces a pipeline mechanism for building up a key-value set of data. See pipeline.spec.ts for an example.
 
+## Installation
+
+Install using yarn:
+
+```
+yarn add -D factory.ts
+```
+
+Install using npm:
+
+```
+npm install --save-dev factory.ts
+```
+
 ## Example
 
 ### Interface
