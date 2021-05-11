@@ -280,11 +280,11 @@ async function buildBase<T, K extends keyof T>(
       if (isPromise(v)) {
         value = await v;
       } else if (v.constructor === Generator) {
-        value = await (v as Generator<any>).build(seqNum);
+        value = await (v ).build(seqNum);
       } else if (v.constructor == Derived) {
         derived.push({ key, derived: v });
       } else if (v.constructor === Sync.Generator) {
-        value = (v as Sync.Generator<any>).build(seqNum);
+        value = (v ).build(seqNum);
       } else if (v.constructor == Sync.Derived) {
         derived.push({ key, derived: new Derived(v.func) });
       } else {

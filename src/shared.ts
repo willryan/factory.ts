@@ -6,8 +6,8 @@ export function recursivePartialOverride<U>(x: U, y: RecPartial<U>): U {
   if (y === undefined || y === null) return x;
   const objProto = Object.getPrototypeOf({});
   if (Object.getPrototypeOf(y) != objProto) return y as any;
-  let v = Object.assign({}, x);
-  let yKeys = Object.keys(y);
+  const v = Object.assign({}, x);
+  const yKeys = Object.keys(y);
   const allKeys = uniq(Object.keys(v).concat(yKeys));
   for (const key of allKeys) {
     if (yKeys.indexOf(key) >= 0) {
