@@ -8,31 +8,11 @@
     "test": "jest --colors",
     "test:debug": "node --inspect=9229 --inspect-brk ./node_modules/.bin/jest --runInBand",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "build-and-publish": "yarn build && npm login && npm publish",
     "check:script": "eslint --fix-dry-run 'src/**/*.ts'",
     "lint:script": "eslint --fix 'src/**/*.ts'",
     "prepare": "husky install"
-  },
-  "jest": {
-    "reporters": [
-      "default"
-    ],
-    "transform": {
-      "\\.(js|ts)$": "ts-jest"
-    },
-    "testRegex": "./spec/.*\\.spec\\.ts$",
-    "moduleFileExte nsions": [
-      "js",
-      "ts",
-      "json"
-    ],
-    "moduleDirectories": [
-      "src",
-      "node_modules"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/jest-setup.ts"
-    ]
   },
   "repository": "https://github.com/willryan/factory.ts",
   "engines": {
@@ -53,14 +33,11 @@
     "eslint-config-prettier": "^8.3.0",
     "husky": ">=6",
     "jest": "^26.6.3",
-    "jest-environment-node-debug": "^2.0.0",
     "lint-staged": ">=10",
     "prettier": "^2.3.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.5.6",
-    "ts-loader": "^9.1.2",
     "ts-node": "^9.1.1",
-    "tslint": "^6.1.3",
     "typescript": "^4.2.4"
   },
   "dependencies": {
