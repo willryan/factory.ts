@@ -16,6 +16,7 @@ export {
   Derived,
   Factory,
   Builder,
+  BuilderFactory,
   val,
   each,
   makeFactory
