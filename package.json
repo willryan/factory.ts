@@ -33,7 +33,7 @@
   },
   "repository": "https://github.com/willryan/factory.ts",
   "engines": {
-    "node": ">= 14.0.0"
+    "node": ">= 14"
   },
   "main": "lib/index.js",
   "typings": "lib/index",
