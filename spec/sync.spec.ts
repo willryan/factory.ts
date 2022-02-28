@@ -236,12 +236,12 @@ describe("factories build stuff", () => {
     });
 
     const widgets = widgetFactory.buildList(3);
-    expect(widgets[2].id).toBe(2);
+    expect(widgets.map(w => w.id)).toEqual([0, 1, 2]);
 
     widgetFactory.resetSequenceNumber();
 
     const moreWidgets = widgetFactory.buildList(3);
-    expect(moreWidgets[2].id).toBe(2);
+    expect(moreWidgets.map(w => w.id)).toEqual([0, 1, 2]);
   });
   it("Can reset sequence number back to config default", () => {
     const widgetFactory = Sync.makeFactory<WidgetType>(
