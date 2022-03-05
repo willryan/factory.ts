@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.0] - 2022-03-05
+
+- CONSIDER THIS FILE DEPRECATED. MOVING TO GITHUB RELEASES.
+
 ## [0.5.1] - 2019-12-06
 
 - fix typing for combine() and 'required keys'

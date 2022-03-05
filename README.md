@@ -1,12 +1,10 @@
 # factory.ts
 
+[![willryan](https://circleci.com/gh/willryan/factory.ts.svg?style=svg)](https://app.circleci.com/pipelines/github/willryan/factory.ts)
+
 A library to ease creation of factories for test data for Typescript
 
 Given an interface or type definition, create a factory for generating test data. Values for each key may be defaulted or be calculated each time based on a sequence number and the values for other keys.
-
-Version 0.3.2 introduces a new set of async factory methods for cases where asynchronicity is required to generate values. See sync.spec.ts for examples.
-
-Version 0.3.3 introduces a pipeline mechanism for building up a key-value set of data. See pipeline.spec.ts for an example.
 
 ## Installation
 
@@ -42,11 +40,11 @@ interface Person {
 import * as Factory from "factory.ts";
 
 const personFactory = Factory.Sync.makeFactory<Person>({
-  id: Factory.each(i => i),
+  id: Factory.each((i) => i),
   firstName: "Bob",
   lastName: "Smith",
   fullName: "Robert J. Smith, Jr.",
-  age: Factory.each(i => 20 + (i % 10))
+  age: Factory.each((i) => 20 + (i % 10)),
 });
 ```
 
@@ -57,7 +55,7 @@ You can call `personFactory.build` with a subset of field data (`Partial<Person>
 ```typescript
 const james = personFactory.build({
   firstName: "James",
-  fullName: "James Smith"
+  fullName: "James Smith",
 });
 // { id: 1, firstName: 'James', lastName: 'Smith', fullName: 'James Smith', age: 21 };
 
@@ -89,7 +87,7 @@ Occasionally you may want to extend an existing factory with some changes. For e
 
 ```typescript
 const anyAgeFactory = personFactory.extend({
-  age: Factory.each(() => randomAge(0, 100)) // randomAge(min:number, max:number) => number
+  age: Factory.each(() => randomAge(0, 100)), // randomAge(min:number, max:number) => number
 });
 
 anyAgeFactory.build(); // { id: 1, ..., age: <random value> };
@@ -110,7 +108,7 @@ const autoFullNameFactory = personFactory.withDerivation2(
 
 const jamesBond = autoFullNameFactory.build({
   firstName: "James",
-  lastName: "Bond"
+  lastName: "Bond",
 });
 // { id: 1, firstName: 'James', lastName: 'Bond', fullName: 'Bond, James Bond', age: 21 };
 ```
@@ -124,7 +122,7 @@ Alternatively, if you need to read more than 5 properties, or just don't want to
 ```typescript
 const autoFullNameFactory = personFactory.withDerivation(
   "fullName",
-  person => `${person.lName}, ${person.fName} ${person.lName}`
+  (person) => `${person.lName}, ${person.fName} ${person.lName}`
 );
 ```
 
@@ -141,10 +139,10 @@ Sometimes you have two factories you want to combine into one. So essentially yo
 ```typescript
 const timeStamps = Sync.makeFactory({
   createdAt: Sync.each(() => new Date()),
-  updatedAt: Sync.each(() => new Date())
+  updatedAt: Sync.each(() => new Date()),
 });
 const softDelete = Sync.makeFactory({
-  isDeleted: false
+  isDeleted: false,
 });
 interface Post {
   content: string;
@@ -153,7 +151,7 @@ interface Post {
   isDeleted: boolean;
 }
 const postFactory: Sync.Factory<Post> = makeFactory({
-  content: "lorem ipsum"
+  content: "lorem ipsum",
 })
   .combine(timeStamps)
   .combine(softDelete);
@@ -179,11 +177,11 @@ interface Person {
 
 const personFactory = Factory.Sync.makeFactoryWithRequired<Person, "parent_id">(
   {
-    id: Factory.each(i => i),
+    id: Factory.each((i) => i),
     firstName: "Bob",
     lastName: "Smith",
     fullName: "Robert J. Smith, Jr.",
-    age: Factory.each(i => 20 + (i % 10))
+    age: Factory.each((i) => 20 + (i % 10)),
   }
 );
 
