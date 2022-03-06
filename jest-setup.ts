@@ -1,7 +1,7 @@
 (function () {
   let lastTime = 0;
   const vendors = ["ms", "moz", "webkit", "o"];
-  const w: any = window;
+  const w: any = globalThis;
   for (let x = 0; x < vendors.length && !w.requestAnimationFrame; ++x) {
     w.requestAnimationFrame = w[vendors[x] + "RequestAnimationFrame"];
     w.cancelAnimationFrame =
@@ -27,10 +27,3 @@
     };
   }
 })();
-
-if (process.env.DEBUGGING) {
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60 * 5; // five minutes
-} else {
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 60; // 60 seconds
-}
-
