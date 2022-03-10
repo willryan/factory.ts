@@ -262,6 +262,20 @@ describe("factories build stuff", () => {
     const moreWidgets = widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(102);
   });
+  it("Can reset sequence number to an arbitrary value", () => {
+    const widgetFactory = Sync.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Sync.each(i => i)
+    });
+
+    const widgets = widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(2);
+
+    widgetFactory.resetSequenceNumber(5);
+
+    const moreWidgets = widgetFactory.buildList(3);
+    expect(moreWidgets[0].id).toBe(5);
+  });
   it("clones deeply nested values", () => {
     interface TypeA {
       bar: {
@@ -306,5 +320,83 @@ describe("factories build stuff", () => {
     const [c, d] = factoryA.buildList(2, { foreignId: "fk3" });
     expect(c).toEqual({ name: "hello", foreignId: "fk3" });
     expect(d).toEqual({ name: "hello", foreignId: "fk3" });
+  });
+  it("can build item using BuilderFactory", () => {
+    const widgetFactory = Sync.makeFactory<WidgetType>(()=> ({
+      name: "Widget",
+      id: Sync.each(i => i + 1)
+    }));
+
+    const widget = widgetFactory.build({
+      name: "New widget"
+    });
+
+    expect(widget).toStrictEqual({
+      name: "New widget",
+      id: 1
+    });
+  });
+  it("can extend factory with BuilderFactory", () => {
+    const widgetFactory = Sync.makeFactory<WidgetType>(()=> ({
+      name: "Widget",
+      id: Sync.each(i => i + 1)
+    }));
+
+    const newWidgetFactory = widgetFactory.extend({
+      name: "Extended widget"
+    });
+
+    const widget = newWidgetFactory.build({
+      name: "New widget"
+    });
+
+    expect(widget).toStrictEqual({
+      name: "New widget",
+      id: 1
+    });
+  });
+  it("can combine factories with BuilderFactory", () => {
+    const timeStamps = Sync.makeFactory(() => ({
+      createdAt: Sync.each(() => new Date()),
+      updatedAt: Sync.each(() => new Date())
+    }));
+    const softDelete = Sync.makeFactory(() => ({
+      isDeleted: false
+    }));
+    interface Post {
+      content: string;
+      createdAt: Date;
+      updatedAt: Date;
+      isDeleted: boolean;
+    }
+    interface User {
+      email: string;
+      createdAt: Date;
+      updatedAt: Date;
+      isDeleted: boolean;
+    }
+    const postFactory: Sync.Factory<Post> = Sync.makeFactory(() => ({
+      content: "lorem ipsum"
+    }))
+      .combine(timeStamps)
+      .combine(softDelete);
+    const userFactory: Sync.Factory<User> = Sync.makeFactory({
+      email: "test@user.com"
+    })
+      .combine(timeStamps)
+      .combine(softDelete);
+    const post = postFactory.build({
+      content: "yadda yadda yadda",
+      isDeleted: true
+    });
+    expect(post.createdAt.getTime() - new Date().getTime()).toBeLessThan(100);
+    expect(post.isDeleted).toEqual(true);
+    const user = userFactory.build({
+      email: "foo@bar.com",
+      createdAt: new Date("2018/01/02")
+    });
+    expect(user.createdAt.getTime()).toEqual(new Date("2018/01/02").getTime());
+    expect(post.updatedAt.getTime() - new Date().getTime()).toBeLessThan(100);
+    expect(user.email).toEqual("foo@bar.com");
   });
 });

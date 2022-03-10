@@ -32,21 +32,27 @@ export class Factory<T, K extends keyof T = keyof T> {
   private getStartingSequenceNumber = () =>
     (this.config && this.config.startingSequenceNumber) || 0;
 
+  private expandBuilder(): Builder<T, K> {
+    return typeof this.builder === "function" ? this.builder() : this.builder;
+  }
+
   constructor(
-    readonly builder: Builder<T, K>,
+    readonly builder: Builder<T, K> | BuilderFactory<T, K>,
     private readonly config: SyncFactoryConfig | undefined
   ) {
     this.seqNum = this.getStartingSequenceNumber();
   }
 
-  public resetSequenceNumber() {
-    this.seqNum = this.getStartingSequenceNumber();
+  public resetSequenceNumber(newSequenceNumber?: number) {
+    this.seqNum = newSequenceNumber
+      ? newSequenceNumber
+      : this.getStartingSequenceNumber();
   }
 
   public build = ((item?: RecPartial<T> & Omit<T, K>): T => {
     const seqNum = this.seqNum;
     this.seqNum++;
-    const base = buildBase(seqNum, this.builder);
+    const base = buildBase(seqNum, this.expandBuilder());
     let v = Object.assign({}, base.value); //, item);
     if (item) {
       v = recursivePartialOverride(v, item);
@@ -72,18 +78,18 @@ export class Factory<T, K extends keyof T = keyof T> {
   }) as ListFactoryFunc<T, K>;
 
   public extend(def: RecPartial<Builder<T, K>>): Factory<T, K> {
-    const builder = Object.assign({}, this.builder, def);
+    const builder = () => Object.assign({}, this.expandBuilder(), def);
     return new Factory(builder, this.config);
   }
 
   public combine<U, K2 extends keyof U>(
     other: Factory<U, K2>
   ): Factory<T & U, K | K2> {
-    const builder: Builder<T & U, K | K2> = Object.assign(
+    const builder = (() => Object.assign(
       {},
-      this.builder,
-      other.builder
-    ) as any;
+      this.expandBuilder(),
+      other.expandBuilder()
+    )) as BuilderFactory<T & U, K | K2>;
     return new Factory<T & U, K | K2>(builder, this.config);
   }
 
@@ -188,6 +194,8 @@ export type Builder<T, K extends keyof T = keyof T> = {
   [P in K]: T[P] | Generator<T[P]> | Derived<T, T[P]>
 };
 
+export type BuilderFactory<T, K extends keyof T = keyof T> = () => Builder<T, K>;
+
 export function val<T>(val: T): Generator<T> {
   return new Generator(() => val);
 }
@@ -231,14 +239,14 @@ function buildBase<T, K extends keyof T>(
 }
 
 export function makeFactory<T>(
-  builder: Builder<T>,
+  builder: Builder<T> | BuilderFactory<T>,
   config?: SyncFactoryConfig
 ): Factory<T> {
   return new Factory(builder, config);
 }
 
 export function makeFactoryWithRequired<T, K extends keyof T>(
-  builder: Builder<T, Exclude<keyof T, K>>,
+  builder: Builder<T, Exclude<keyof T, K>> | BuilderFactory<T, Exclude<keyof T, K>>,
   config?: SyncFactoryConfig
 ): Factory<T, Exclude<keyof T, K>> {
   return new Factory(builder, config);
