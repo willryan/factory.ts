@@ -17,6 +17,7 @@
     "transform": {
       "\\.(js|ts)$": "ts-jest"
     },
+    "testEnvironment": "node",
     "testRegex": "./spec/.*\\.spec\\.ts$",
     "moduleFileExtensions": [
       "js",
@@ -26,9 +27,6 @@
     "moduleDirectories": [
       "src",
       "node_modules"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/jest-setup.ts"
     ]
   },
   "repository": "https://github.com/willryan/factory.ts",
