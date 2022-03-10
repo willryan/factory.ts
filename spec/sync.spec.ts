@@ -262,6 +262,20 @@ describe("factories build stuff", () => {
     const moreWidgets = widgetFactory.buildList(3);
     expect(moreWidgets[2].id).toBe(102);
   });
+  it("Can reset sequence number to an arbitrary value", () => {
+    const widgetFactory = Sync.makeFactory<WidgetType>({
+      name: "Widget",
+      id: Sync.each(i => i)
+    });
+
+    const widgets = widgetFactory.buildList(3);
+    expect(widgets[2].id).toBe(2);
+
+    widgetFactory.resetSequenceNumber(5);
+
+    const moreWidgets = widgetFactory.buildList(3);
+    expect(moreWidgets[0].id).toBe(5);
+  });
   it("clones deeply nested values", () => {
     interface TypeA {
       bar: {

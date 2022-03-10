@@ -43,8 +43,10 @@ export class Factory<T, K extends keyof T = keyof T> {
     this.seqNum = this.getStartingSequenceNumber();
   }
 
-  public resetSequenceNumber() {
-    this.seqNum = this.getStartingSequenceNumber();
+  public resetSequenceNumber(newSequenceNumber?: number) {
+    this.seqNum = newSequenceNumber
+      ? newSequenceNumber
+      : this.getStartingSequenceNumber();
   }
 
   public build = ((item?: RecPartial<T> & Omit<T, K>): T => {
