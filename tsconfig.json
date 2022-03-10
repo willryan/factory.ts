@@ -5,10 +5,7 @@
     "outDir": "lib",
     "module": "commonjs",
     "target": "es2015",
-    "lib": [
-      "es2015",
-      "dom"
-    ],
+    "lib": ["es2015"],
     "alwaysStrict": true,
     "strictFunctionTypes": true,
     "strict": true,
