@@ -68,11 +68,12 @@ export class Factory<T, K extends keyof T = keyof T> {
 
   public buildList = ((
     count: number,
-    item?: RecPartial<T> & Omit<T, K>
+    item?: RecPartial<T> & Omit<T, K> | Array<RecPartial<T> & Omit<T, K>>
   ): T[] => {
+    const items = Array.isArray(item) ? item : [item];
     const ts: T[] = Array(count); // allocate to correct size
     for (let i = 0; i < count; i++) {
-      ts[i] = this.build(item as any);
+      ts[i] = this.build((items[i] || items[0]) as any);
     }
     return ts;
   }) as ListFactoryFunc<T, K>;
