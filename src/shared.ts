@@ -1,4 +1,6 @@
-export type RecPartial<T> = { [P in keyof T]?: RecPartial<T[P]> };
+export declare type RecPartial<T> = {
+  [P in keyof T]?: unknown extends T[P] ? unknown : RecPartial<T[P]>;
+};
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
