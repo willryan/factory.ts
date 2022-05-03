@@ -20,13 +20,13 @@ interface WidgetType {
 describe("factories build stuff", () => {
   const childFactory = Sync.makeFactory<ChildType>({
     name: "Kid",
-    grade: 1
+    grade: 1,
   });
   const parentFactory = Sync.makeFactory<ParentType>({
     name: "Parent",
-    birthday: Sync.each(i => new Date(`2017/05/${i + 1}`)),
+    birthday: Sync.each((i) => new Date(`2017/05/${i + 1}`)),
     children: Sync.each(() => []),
-    spouse: null
+    spouse: null,
   });
   it("makes an object from a factory", () => {
     const jimmy = childFactory.build({ name: "Jimmy" });
@@ -54,28 +54,28 @@ describe("factories build stuff", () => {
     const alice = childFactory.build({ name: "Alice", grade: 3 });
     const susan = parentFactory.build({
       name: "Susan",
-      children: [jimmy, alice]
+      children: [jimmy, alice],
     });
-    expect(susan.children.map(c => c.name)).toEqual(["Jimmy", "Alice"]);
+    expect(susan.children.map((c) => c.name)).toEqual(["Jimmy", "Alice"]);
   });
   it("can refer to other factories", () => {
     const parentWithKidsFactory = Sync.makeFactory<ParentType>({
       name: "Timothy",
-      birthday: Sync.each(i => new Date(`2017/05/${i}`)),
+      birthday: Sync.each((i) => new Date(`2017/05/${i}`)),
       children: Sync.each(() => [
         childFactory.build({ name: "Bobby" }),
-        childFactory.build({ name: "Jane" })
+        childFactory.build({ name: "Jane" }),
       ]),
-      spouse: null
+      spouse: null,
     });
     const tim = parentWithKidsFactory.build({
-      birthday: new Date("2017-02-01")
+      birthday: new Date("2017-02-01"),
     });
-    expect(tim.children.map(c => c.name)).toEqual(["Bobby", "Jane"]);
+    expect(tim.children.map((c) => c.name)).toEqual(["Bobby", "Jane"]);
   });
   it("can extend existing factories", () => {
     const geniusFactory = childFactory.extend({
-      grade: Sync.each(i => (i + 1) * 2)
+      grade: Sync.each((i) => (i + 1) * 2),
     });
     const colin = geniusFactory.build({ name: "Colin" });
     expect(colin.grade).toEqual(2);
@@ -91,8 +91,8 @@ describe("factories build stuff", () => {
     const personFactory = Sync.makeFactory<Person>({
       firstName: "Double-O",
       lastName: Sync.each(() => "Bond"),
-      fullName: ""
-    }).withDerivation("fullName", p => `${p.firstName} ${p.lastName}`);
+      fullName: "",
+    }).withDerivation("fullName", (p) => `${p.firstName} ${p.lastName}`);
     //.withDerivation2(['firstName','lastName'],'fullName', (fn, ln) => `${fn} ${ln}`);
     const bond = personFactory.build({ firstName: "James" });
     expect(bond.fullName).toEqual("James Bond");
@@ -110,10 +110,10 @@ describe("factories build stuff", () => {
   it("can combine factories", () => {
     const timeStamps = Sync.makeFactory({
       createdAt: Sync.each(() => new Date()),
-      updatedAt: Sync.each(() => new Date())
+      updatedAt: Sync.each(() => new Date()),
     });
     const softDelete = Sync.makeFactory({
-      isDeleted: false
+      isDeleted: false,
     });
     interface Post {
       content: string;
@@ -128,24 +128,24 @@ describe("factories build stuff", () => {
       isDeleted: boolean;
     }
     const postFactory: Sync.Factory<Post> = Sync.makeFactory({
-      content: "lorem ipsum"
+      content: "lorem ipsum",
     })
       .combine(timeStamps)
       .combine(softDelete);
     const userFactory: Sync.Factory<User> = Sync.makeFactory({
-      email: "test@user.com"
+      email: "test@user.com",
     })
       .combine(timeStamps)
       .combine(softDelete);
     const post = postFactory.build({
       content: "yadda yadda yadda",
-      isDeleted: true
+      isDeleted: true,
     });
     expect(post.createdAt.getTime() - new Date().getTime()).toBeLessThan(100);
     expect(post.isDeleted).toEqual(true);
     const user = userFactory.build({
       email: "foo@bar.com",
-      createdAt: new Date("2018/01/02")
+      createdAt: new Date("2018/01/02"),
     });
     expect(user.createdAt.getTime()).toEqual(new Date("2018/01/02").getTime());
     expect(post.updatedAt.getTime() - new Date().getTime()).toBeLessThan(100);
@@ -165,16 +165,16 @@ describe("factories build stuff", () => {
       aisle: {
         name: "Junk Food Aisle",
         typeOfFood: "Junk Food",
-        tags: ["a", "b", "c"]
-      }
+        tags: ["a", "b", "c"],
+      },
     });
 
     // Error: Property 'name' is missing in type '{ budget: number; }
     const aStore = groceryStoreFactory.build({
       aisle: {
         budget: 9999,
-        tags: ["a", "b"]
-      }
+        tags: ["a", "b"],
+      },
     });
     expect(aStore.aisle.budget).toEqual(9999);
     expect(aStore.aisle.typeOfFood).toEqual("Junk Food");
@@ -187,9 +187,9 @@ describe("factories build stuff", () => {
       recur: null | TypeA;
     }
     const factoryA = Sync.makeFactory<TypeA>({
-      foo: Sync.each(n => n),
+      foo: Sync.each((n) => n),
       bar: "hello",
-      recur: null
+      recur: null,
     });
     const factoryAPrime = factoryA
       .withDerivation("foo", (_v, n) => {
@@ -207,7 +207,7 @@ describe("factories build stuff", () => {
     expect(justA.foo).toEqual(99);
     const aWithA = factoryAPrime.build({
       // outer: starts on seq 3
-      recur: factoryAPrime.build() // inner: starts on seq 2
+      recur: factoryAPrime.build(), // inner: starts on seq 2
     });
     expect(aWithA.foo).toEqual(102);
     expect(aWithA.bar).toEqual("102:2");
@@ -221,8 +221,8 @@ describe("factories build stuff", () => {
     }
     const factoryA = Sync.makeFactory<TypeA>(
       {
-        foo: Sync.each(n => n + 1),
-        bar: "hello"
+        foo: Sync.each((n) => n + 1),
+        bar: "hello",
       },
       { startingSequenceNumber: 3 }
     );
@@ -232,25 +232,25 @@ describe("factories build stuff", () => {
   it("Can reset sequence number back to non-config default i.e. 0", () => {
     const widgetFactory = Sync.makeFactory<WidgetType>({
       name: "Widget",
-      id: Sync.each(i => i)
+      id: Sync.each((i) => i),
     });
 
     const widgets = widgetFactory.buildList(3);
-    expect(widgets.map(w => w.id)).toEqual([0, 1, 2]);
+    expect(widgets.map((w) => w.id)).toEqual([0, 1, 2]);
 
     widgetFactory.resetSequenceNumber();
 
     const moreWidgets = widgetFactory.buildList(3);
-    expect(moreWidgets.map(w => w.id)).toEqual([0, 1, 2]);
+    expect(moreWidgets.map((w) => w.id)).toEqual([0, 1, 2]);
   });
   it("Can reset sequence number back to config default", () => {
     const widgetFactory = Sync.makeFactory<WidgetType>(
       {
         name: "Widget",
-        id: Sync.each(i => i)
+        id: Sync.each((i) => i),
       },
       {
-        startingSequenceNumber: 100
+        startingSequenceNumber: 100,
       }
     );
 
@@ -265,7 +265,7 @@ describe("factories build stuff", () => {
   it("Can reset sequence number to an arbitrary value", () => {
     const widgetFactory = Sync.makeFactory<WidgetType>({
       name: "Widget",
-      id: Sync.each(i => i)
+      id: Sync.each((i) => i),
     });
 
     const widgets = widgetFactory.buildList(3);
@@ -284,8 +284,8 @@ describe("factories build stuff", () => {
     }
     const factoryA = Sync.makeFactory<TypeA>({
       bar: {
-        baz: "should-be-immutable"
-      }
+        baz: "should-be-immutable",
+      },
     });
     const a = factoryA.build();
     const b = factoryA.build();
@@ -298,7 +298,7 @@ describe("factories build stuff", () => {
       name: string;
     }
     const factoryA = Sync.makeFactoryWithRequired<DbRecord, "foreignId">({
-      name: "hello"
+      name: "hello",
     });
     // compile failures
     //const z = factoryA.build();
@@ -322,46 +322,46 @@ describe("factories build stuff", () => {
     expect(d).toEqual({ name: "hello", foreignId: "fk3" });
   });
   it("can build item using BuilderFactory", () => {
-    const widgetFactory = Sync.makeFactory<WidgetType>(()=> ({
+    const widgetFactory = Sync.makeFactory<WidgetType>(() => ({
       name: "Widget",
-      id: Sync.each(i => i + 1)
+      id: Sync.each((i) => i + 1),
     }));
 
     const widget = widgetFactory.build({
-      name: "New widget"
+      name: "New widget",
     });
 
     expect(widget).toStrictEqual({
       name: "New widget",
-      id: 1
+      id: 1,
     });
   });
   it("can extend factory with BuilderFactory", () => {
-    const widgetFactory = Sync.makeFactory<WidgetType>(()=> ({
+    const widgetFactory = Sync.makeFactory<WidgetType>(() => ({
       name: "Widget",
-      id: Sync.each(i => i + 1)
+      id: Sync.each((i) => i + 1),
     }));
 
     const newWidgetFactory = widgetFactory.extend({
-      name: "Extended widget"
+      name: "Extended widget",
     });
 
     const widget = newWidgetFactory.build({
-      name: "New widget"
+      name: "New widget",
     });
 
     expect(widget).toStrictEqual({
       name: "New widget",
-      id: 1
+      id: 1,
     });
   });
   it("can combine factories with BuilderFactory", () => {
     const timeStamps = Sync.makeFactory(() => ({
       createdAt: Sync.each(() => new Date()),
-      updatedAt: Sync.each(() => new Date())
+      updatedAt: Sync.each(() => new Date()),
     }));
     const softDelete = Sync.makeFactory(() => ({
-      isDeleted: false
+      isDeleted: false,
     }));
     interface Post {
       content: string;
@@ -376,27 +376,43 @@ describe("factories build stuff", () => {
       isDeleted: boolean;
     }
     const postFactory: Sync.Factory<Post> = Sync.makeFactory(() => ({
-      content: "lorem ipsum"
+      content: "lorem ipsum",
     }))
       .combine(timeStamps)
       .combine(softDelete);
     const userFactory: Sync.Factory<User> = Sync.makeFactory({
-      email: "test@user.com"
+      email: "test@user.com",
     })
       .combine(timeStamps)
       .combine(softDelete);
     const post = postFactory.build({
       content: "yadda yadda yadda",
-      isDeleted: true
+      isDeleted: true,
     });
     expect(post.createdAt.getTime() - new Date().getTime()).toBeLessThan(100);
     expect(post.isDeleted).toEqual(true);
     const user = userFactory.build({
       email: "foo@bar.com",
-      createdAt: new Date("2018/01/02")
+      createdAt: new Date("2018/01/02"),
     });
     expect(user.createdAt.getTime()).toEqual(new Date("2018/01/02").getTime());
     expect(post.updatedAt.getTime() - new Date().getTime()).toBeLessThan(100);
     expect(user.email).toEqual("foo@bar.com");
+  });
+  it("stops RecPartial at unknown (will fail to compile with null value otherwise)", () => {
+    interface Data {
+      id: string;
+      description: string;
+      payload: unknown;
+    }
+    const dataFactory = Sync.makeFactoryWithRequired<Data, "payload">({
+      id: Sync.each((i) => i.toString()),
+      description: "lorem ipsum",
+    });
+    const instanceOfData = dataFactory.build({
+      id: "1",
+      payload: null,
+    });
+    expect(instanceOfData.payload).toEqual({ foo: "bar" });
   });
 });
