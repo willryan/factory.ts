@@ -413,6 +413,6 @@ describe("factories build stuff", () => {
       id: "1",
       payload: null,
     });
-    expect(instanceOfData.payload).toEqual({ foo: "bar" });
+    expect(instanceOfData.payload).toEqual(null);
   });
 });
