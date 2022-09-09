@@ -74,4 +74,50 @@ describe("pipelines", () => {
     expect(data.gramps.children[0]).toEqual(data.dad);
     expect(data.gramps.spouse).toBeNull();
   });
+
+  it("pipelines to async factories", async () => {
+    const p = Pipe.Pipeline.start()
+      .addValues({ hello: "kitty", hola: "espanol" })
+      .addValues(() => Promise.resolve({ byebye: "birdie" }))
+      .addValues(v => ({
+        corner: `${v.hello} corner`,
+        golf: v.byebye
+      }))
+      .addFactory(childFactory, "kiddo", { grade: 2 })
+      .addFactory(parentFactory, "dad", v =>
+        Promise.resolve({
+          name: "Dad",
+          children: [v.kiddo],
+          spouse: null
+        })
+      )
+      .addTxFactory(grandpaFactory, "gramps", v => ({
+        name: "Gramps",
+        children: [v.dad],
+        spouse: null
+      }));
+
+    const p_factory = p.toFactory();
+    const data = await p_factory.build();
+
+    expect(data.hello).toEqual("kitty");
+    expect(data.hola).toEqual("espanol");
+    expect(data.byebye).toEqual("birdie");
+    expect(data.corner).toEqual("kitty corner");
+    expect(data.golf).toEqual("birdie");
+    expect(data.kiddo.grade).toEqual(2);
+    expect(data.kiddo.name).toEqual("Kid");
+    expect(data.dad.name).toEqual("Dad");
+    expect(data.dad.birthday.getTime()).toEqual(
+      new Date("2017/05/03").getTime()
+    );
+    expect(data.dad.children.length).toEqual(1);
+    expect(data.dad.children[0]).toEqual(data.kiddo);
+    expect(data.dad.spouse).toBeNull();
+    expect(data.gramps.name).toEqual("Gramps");
+    expect(data.gramps.spoils).toEqual(true);
+    expect(data.gramps.children.length).toEqual(1);
+    expect(data.gramps.children[0]).toEqual(data.dad);
+    expect(data.gramps.spouse).toBeNull();
+  });
 });
