@@ -15,7 +15,7 @@ export type ListFactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
   ? (count: number, item?: RecPartial<T>) => Promise<U[]>
   : (count: number, item: RecPartial<T> & Omit<T, K>) => Promise<U[]>;
 
-function isPromise<T extends Object>(t: T | Promise<T>): t is Promise<T> {
+function isPromise<T>(t: T | Promise<T>): t is Promise<T> {
   return typeof (t as any)["then"] === "function";
 }
 
