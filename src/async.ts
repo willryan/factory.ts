@@ -16,7 +16,7 @@ export type ListFactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
   : (count: number, item: RecPartial<T> & Omit<T, K>) => Promise<U[]>;
 
 function isPromise<T>(t: T | Promise<T>): t is Promise<T> {
-  return typeof (t as any)["then"] === "function";
+  return !!t && typeof (t as any)["then"] === "function";
 }
 
 export function lift<T>(t: T | Promise<T>): Promise<T> {
@@ -272,14 +272,13 @@ async function buildBase<T, K extends keyof T>(
   seqNum: number,
   builder: Builder<T, K> | Promise<Builder<T, K>>
 ): Promise<BaseBuild<T>> {
-  if (isPromise(builder))
-    builder = await builder;
+  const resolvedBuilder = await lift(builder);
 
   const t: { [key: string]: any } = {};
-  const keys = Object.getOwnPropertyNames(builder);
+  const keys = Object.getOwnPropertyNames(resolvedBuilder);
   const derived: BaseDerived[] = [];
   for (const key of keys) {
-    const v = (builder as any)[key];
+    const v = (resolvedBuilder as any)[key];
     let value = v;
     if (!!v && typeof v === "object") {
       if (isPromise(v)) {

@@ -93,6 +93,6 @@ export class Pipeline<P extends Record<string, unknown> = {}> implements Promise
   }
 
   toFactory(): Async.Factory<P> {
-    return Async.makeFactory(this.current as Promise<Async.Builder<P, keyof P>>);
+    return Async.makeFactory(this.current as Promise<Async.Builder<P>>);
   }
 }
