@@ -192,7 +192,7 @@ const valid2 = personFactory.build({ parent_id: 3 });
 const valid = personFactory.build({ parent_id: 5, firstName: "Sue" });
 ```
 
-Not the use of `makeFactoryWithRequired()` to specify required keys.
+Note the use of `makeFactoryWithRequired()` to specify required keys.
 
 ## Async Factories
 
