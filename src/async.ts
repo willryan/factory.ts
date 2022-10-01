@@ -15,8 +15,8 @@ export type ListFactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
   ? (count: number, item?: RecPartial<T>) => Promise<U[]>
   : (count: number, item: RecPartial<T> & Omit<T, K>) => Promise<U[]>;
 
-function isPromise<T extends Object>(t: T | Promise<T>): t is Promise<T> {
-  return typeof (t as any)["then"] === "function";
+function isPromise<T>(t: T | Promise<T>): t is Promise<T> {
+  return !!t && typeof (t as any)["then"] === "function";
 }
 
 export function lift<T>(t: T | Promise<T>): Promise<T> {
@@ -57,7 +57,7 @@ export class Factory<T, K extends keyof T = keyof T>
     (this.config && this.config.startingSequenceNumber) || 0;
 
   constructor(
-    readonly builder: Builder<T, K>,
+    readonly builder: Builder<T, K> | Promise<Builder<T, K>>,
     private readonly config: AsyncFactoryConfig | undefined
   ) {
     this.seqNum = this.getStartingSequenceNumber();
@@ -270,13 +270,15 @@ interface BaseBuild<T> {
 
 async function buildBase<T, K extends keyof T>(
   seqNum: number,
-  builder: Builder<T, K>
+  builder: Builder<T, K> | Promise<Builder<T, K>>
 ): Promise<BaseBuild<T>> {
+  const resolvedBuilder = await lift(builder);
+
   const t: { [key: string]: any } = {};
-  const keys = Object.getOwnPropertyNames(builder);
+  const keys = Object.getOwnPropertyNames(resolvedBuilder);
   const derived: BaseDerived[] = [];
   for (const key of keys) {
-    const v = (builder as any)[key];
+    const v = (resolvedBuilder as any)[key];
     let value = v;
     if (!!v && typeof v === "object") {
       if (isPromise(v)) {
@@ -299,14 +301,14 @@ async function buildBase<T, K extends keyof T>(
 }
 
 export function makeFactory<T>(
-  builder: Builder<T, keyof T>,
+  builder: Builder<T, keyof T> | Promise<Builder<T, keyof T>>,
   config?: AsyncFactoryConfig
 ): Factory<T, keyof T> {
   return new Factory(builder, config);
 }
 
 export function makeFactoryWithRequired<T, K extends keyof T>(
-  builder: Builder<T, Exclude<keyof T, K>>,
+  builder: Builder<T, Exclude<keyof T, K>> | Promise<Builder<T, Exclude<keyof T, K>>>,
   config?: AsyncFactoryConfig
 ): Factory<T, Exclude<keyof T, K>> {
   return new Factory(builder, config);

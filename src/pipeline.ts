@@ -10,8 +10,8 @@ type PipePartialRec<P, T, K extends keyof T> = MaybePromiseFunc<
   RecPartial<Pick<T, K>> & Omit<T, K>
 >;
 
-export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
-  constructor(private current: Promise<P>) {}
+export class Pipeline<P extends Record<string, unknown> = {}> implements PromiseLike<P> {
+  constructor(private current: Promise<P>) { }
 
   static start() {
     return new Pipeline(Promise.resolve({}));
@@ -90,5 +90,9 @@ export class Pipeline<P extends Object = {}> implements PromiseLike<P> {
     onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
   ): Promise<TResult1 | TResult2> {
     return this.current.then(onfulfilled, onrejected);
+  }
+
+  toFactory(): Async.Factory<P> {
+    return Async.makeFactory(this.current as Promise<Async.Builder<P>>);
   }
 }
