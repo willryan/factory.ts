@@ -191,10 +191,13 @@ export class Factory<T, K extends keyof T = keyof T> {
 }
 
 export type Builder<T, K extends keyof T = keyof T> = {
-  [P in K]: T[P] | Generator<T[P]> | Derived<T, T[P]>
+  [P in K]: T[P] | Generator<T[P]> | Derived<T, T[P]>;
 };
 
-export type BuilderFactory<T, K extends keyof T = keyof T> = () => Builder<T, K>;
+export type BuilderFactory<T, K extends keyof T = keyof T> = () => Builder<
+  T,
+  K
+>;
 
 export function val<T>(val: T): Generator<T> {
   return new Generator(() => val);
@@ -246,7 +249,9 @@ export function makeFactory<T>(
 }
 
 export function makeFactoryWithRequired<T, K extends keyof T>(
-  builder: Builder<T, Exclude<keyof T, K>> | BuilderFactory<T, Exclude<keyof T, K>>,
+  builder:
+    | Builder<T, Exclude<keyof T, K>>
+    | BuilderFactory<T, Exclude<keyof T, K>>,
   config?: SyncFactoryConfig
 ): Factory<T, Exclude<keyof T, K>> {
   return new Factory(builder, config);

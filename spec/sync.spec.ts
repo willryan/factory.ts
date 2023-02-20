@@ -1,3 +1,4 @@
+import { isArray } from "util";
 import * as Sync from "../src/sync";
 
 interface ParentType {
@@ -179,6 +180,17 @@ describe("factories build stuff", () => {
     expect(aStore.aisle.budget).toEqual(9999);
     expect(aStore.aisle.typeOfFood).toEqual("Junk Food");
     expect(aStore.aisle.tags).toEqual(["a", "b"]);
+  });
+  it("supports tuples as members", () => {
+    const factory = Sync.makeFactory<{ foo: [number, number] }>(
+      {
+        foo: Sync.each((seq) => [seq * 2, seq * 2 + 1]),
+      },
+      { startingSequenceNumber: 1 }
+    );
+    const value = factory.build();
+    expect(isArray(value.foo)).toEqual(true);
+    expect(value.foo).toEqual([2, 3]);
   });
   it("supports recursive factories", () => {
     interface TypeA {
