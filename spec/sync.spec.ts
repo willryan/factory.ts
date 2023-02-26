@@ -237,8 +237,62 @@ describe("factories build stuff", () => {
       recur: null | TypeA;
     }
     const factoryA = Sync.makeFactory<TypeA>({
-      foo: Sync.each((n) => n),
+      foo: Sync.each((n) => {
+        console.log("  original 'foo'", n);
+        console.trace();
+        return n;
+      }),
       bar: "hello",
+      recur: null,
+    });
+    const factoryAPrime = factoryA
+      .withDerivation("foo", (v, n) => {
+        // recur: factoryA.build().foo should be 0, n should be 1
+        // aWithA: factoryA.build().foo should be 1, n should be 2
+        console.log(`  derive 'foo':`, { v, n });
+        const foo = factoryA.build().foo;
+        console.trace();
+        const output = foo * 100 + n; // 001 : 102
+        console.log(`  derivation 'foo':`, { output, foo, v, n });
+        return output;
+      })
+      .withDerivation("bar", (v, n) => {
+        // recur: n should be 2, v.foo should be 001 -> "001:1"
+        // aWithA: n should be 3, v.foo should be 102 -> "102:2"
+        return v.foo + ":" + n;
+      });
+    console.log("build justA");
+    const justA = factoryAPrime.build({ foo: 99 }); // seq 1
+    expect(justA.foo).toEqual(99);
+    console.log("AWITHA STARTS");
+    const aWithA = factoryAPrime.build({
+      // outer: starts on seq 3
+      recur: (() => {
+        console.log("RECUR STARTS");
+        const val = factoryAPrime.build(); // first call, with seqN 0
+        console.log("RECUR ENDS", { val });
+        return val;
+      })(), // inner: starts on seq 2
+    });
+    console.log("AWITHA ENDS", aWithA);
+    expect(aWithA.foo).toEqual(102);
+    expect(aWithA.bar).toEqual("102:2");
+    expect(aWithA.recur!.foo).toEqual(1);
+    expect(aWithA.recur!.bar).toEqual("1:1");
+  });
+  it("recursion does not call unnecessary functions overridden by derivation", () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+      recur: null | TypeA;
+    }
+    let firstBarFunctionCallCount = 0;
+    const factoryA = Sync.makeFactory<TypeA>({
+      foo: Sync.each((n) => n),
+      bar: Sync.each(() => {
+        firstBarFunctionCallCount += 1;
+        return "hello";
+      }),
       recur: null,
     });
     const factoryAPrime = factoryA
@@ -254,19 +308,10 @@ describe("factories build stuff", () => {
         // aWithA: n should be 3, v.foo should be 102 -> "102:2"
         return v.foo + ":" + n;
       });
+    firstBarFunctionCallCount = 0;
     const justA = factoryAPrime.build({ foo: 99 }); // seq 1
     expect(justA.foo).toEqual(99);
-    const aWithA = factoryAPrime.build({
-      // outer: starts on seq 3
-      recur: (() => {
-        const val = factoryAPrime.build(); // first call, with seqN 0
-        return val;
-      })(), // inner: starts on seq 2
-    });
-    expect(aWithA.foo).toEqual(102);
-    expect(aWithA.bar).toEqual("102:2");
-    expect(aWithA.recur!.foo).toEqual(1);
-    expect(aWithA.recur!.bar).toEqual("1:1");
+    expect(firstBarFunctionCallCount).toEqual(1);
   });
   it("recursion does not call unnecessary functions overridden by derivation", () => {
     interface TypeA {

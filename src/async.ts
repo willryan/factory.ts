@@ -75,7 +75,11 @@ export class Factory<T, K extends keyof T = keyof T>
   }) as FactoryFunc<T, K, T>;
 
   public _build = async (
+<<<<<<< HEAD
     buildKeys: (keyof T)[] | null,
+=======
+    _buildKeys: (keyof T)[] | null,
+>>>>>>> a02c13f (sync works, async refactored to be ready for changes)
     item?: RecPartial<T> & Omit<T, K>
   ): Promise<T> => {
     const seqNum = this.seqNum;
@@ -101,7 +105,11 @@ export class Factory<T, K extends keyof T = keyof T>
       (v as any)[der.key] = await der.derived.build(v, seqNum);
     }
     return lift(v);
+<<<<<<< HEAD
   };
+=======
+  }; // ) as FactoryFunc<T, K, T>;
+>>>>>>> a02c13f (sync works, async refactored to be ready for changes)
 
   public buildList = (async (
     count: number,
