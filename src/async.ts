@@ -85,12 +85,6 @@ export class Factory<T, K extends keyof T = keyof T>
     if (item) {
       v = recursivePartialOverride(v, item);
     }
-    // const keys = Object.keys(item || {});
-    // for (const der of base.derived) {
-    //   if (keys.indexOf(der.key) < 0) {
-    //     (v as any)[der.key] = await der.derived.build(v, seqNum);
-    //   }
-    // }
     const directlySpecifiedKeys = Object.keys(item || {});
     if (!buildKeys) {
       buildKeys = base.derived.map((d) => d.key) as (keyof T)[];
@@ -107,7 +101,7 @@ export class Factory<T, K extends keyof T = keyof T>
       (v as any)[der.key] = await der.derived.build(v, seqNum);
     }
     return lift(v);
-  }; // ) as FactoryFunc<T, K, T>;
+  };
 
   public buildList = (async (
     count: number,
@@ -141,21 +135,20 @@ export class Factory<T, K extends keyof T = keyof T>
     return new TransformFactory(this, fn);
   }
 
-  public withDerivationOld<KOut extends keyof T>(
-    kOut: KOut,
-    f: (v1: T, seq: number) => T[KOut] | Promise<T[KOut]>
-  ): Factory<T, K> {
-    const partial: any = {};
-    partial[kOut] = new Derived<T, T[KOut]>(f);
-    return this.extend(partial);
-  }
+  // public withDerivationOld<KOut extends keyof T>(
+  //   kOut: KOut,
+  //   f: (v1: T, seq: number) => T[KOut] | Promise<T[KOut]>
+  // ): Factory<T, K> {
+  //   const partial: any = {};
+  //   partial[kOut] = new Derived<T, T[KOut]>(f);
+  //   return this.extend(partial);
+  // }
 
   public withDerivation<KOut extends K>(
     kOut: KOut,
     f: (v1: T, seq: number) => T[KOut] | Promise<T[KOut]>
   ): Factory<T, K> {
     const partial: any = {};
-    //[kOut];
     partial[kOut] = new Derived<T, T[KOut]>(async (v2, seq) => {
       delete v2[kOut];
       const origValue = (await this._build([kOut], v2))[kOut];

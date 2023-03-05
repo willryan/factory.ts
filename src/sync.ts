@@ -5,6 +5,14 @@ export interface SyncFactoryConfig {
   readonly startingSequenceNumber?: number;
 }
 
+export type FactoryFunc<T, K extends keyof T> = keyof T extends K
+  ? (item?: RecPartial<T>) => T
+  : (item: RecPartial<T> & Omit<T, K>) => T;
+
+export type ListFactoryFunc<T, K extends keyof T> = keyof T extends K
+  ? (count: number, item?: RecPartial<T>) => T[]
+  : (count: number, item: RecPartial<T> & Omit<T, K>) => T[];
+
 export class Generator<T> {
   constructor(readonly func: (seq: number) => T) {}
   public build(seq: number): T {
@@ -19,15 +27,12 @@ export class Derived<TOwner, TProperty> {
   }
 }
 
-export type FactoryFunc<T, K extends keyof T> = keyof T extends K
-  ? (item?: RecPartial<T>) => T
-  : (item: RecPartial<T> & Omit<T, K>) => T;
+export interface IFactory<T, K extends keyof T> {
+  build: FactoryFunc<T, K>;
+  buildList: ListFactoryFunc<T, K>;
+}
 
-export type ListFactoryFunc<T, K extends keyof T> = keyof T extends K
-  ? (count: number, item?: RecPartial<T>) => T[]
-  : (count: number, item: RecPartial<T> & Omit<T, K>) => T[];
-
-export class Factory<T, K extends keyof T = keyof T> {
+export class Factory<T, K extends keyof T = keyof T> implements IFactory<T, K> {
   private seqNum: number;
   private getStartingSequenceNumber = () =>
     (this.config && this.config.startingSequenceNumber) || 0;
@@ -110,14 +115,14 @@ export class Factory<T, K extends keyof T = keyof T> {
     return new Factory<T & U, K | K2>(builder, this.config);
   }
 
-  public withDerivationOld<KOut extends keyof T>(
-    kOut: KOut,
-    f: (v1: T, seq: number) => T[KOut]
-  ): Factory<T, K> {
-    const partial: any = {};
-    partial[kOut] = new Derived<T, T[KOut]>(f);
-    return this.extend(partial);
-  }
+  // public withDerivationOld<KOut extends keyof T>(
+  //   kOut: KOut,
+  //   f: (v1: T, seq: number) => T[KOut]
+  // ): Factory<T, K> {
+  //   const partial: any = {};
+  //   partial[kOut] = new Derived<T, T[KOut]>(f);
+  //   return this.extend(partial);
+  // }
 
   public withDerivation<KOut extends K>(
     kOut: KOut,
