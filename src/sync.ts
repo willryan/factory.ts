@@ -50,10 +50,10 @@ export class Factory<T, K extends keyof T = keyof T> {
   }
 
   public build = ((item?: RecPartial<T> & Omit<T, K>): T => {
-    return this.build_inner(null, item);
+    return this._build(null, item);
   }) as FactoryFunc<T, K>;
 
-  private build_inner = (
+  private _build = (
     buildKeys: (keyof T)[] | null,
     item?: RecPartial<T> & Omit<T, K>
   ): T => {
@@ -124,17 +124,10 @@ export class Factory<T, K extends keyof T = keyof T> {
     f: (v1: T, seq: number) => T[KOut]
   ): Factory<T, K> {
     const partial: any = {};
-    //[kOut];
     partial[kOut] = new Derived<T, T[KOut]>((v2, seq) => {
-      // console.log(`prop(${kOut}) func:`, f.toString());
-      // console.log(`prop(${kOut}) v2 original is ...`, v2);
-      // we need to modify v2[kOut] as it will be a derived now
       delete v2[kOut];
-      // this getting what the value *would have been*, necessary for
-      // derivation based on original value
-      const origValue = this.build_inner([kOut], v2)[kOut];
+      const origValue = this._build([kOut], v2)[kOut];
       v2[kOut] = origValue;
-      // console.log(`prop(${kOut}) v2 to use in derivation is ...`, v2);
       return f(v2, seq);
     });
     return this.extend(partial);

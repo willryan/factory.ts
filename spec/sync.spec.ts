@@ -94,7 +94,6 @@ describe("factories build stuff", () => {
       lastName: Sync.each(() => "Bond"),
       fullName: "",
     }).withDerivation("fullName", (p) => `${p.firstName} ${p.lastName}`);
-    //.withDerivation2(['firstName','lastName'],'fullName', (fn, ln) => `${fn} ${ln}`);
     const bond = personFactory.build({ firstName: "James" });
     expect(bond.fullName).toEqual("James Bond");
     const doubleO = personFactory.build();
