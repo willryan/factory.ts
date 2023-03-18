@@ -135,16 +135,16 @@ export class Factory<T, K extends keyof T = keyof T>
     return new TransformFactory(this, fn);
   }
 
-  // public withDerivationOld<KOut extends keyof T>(
-  //   kOut: KOut,
-  //   f: (v1: T, seq: number) => T[KOut] | Promise<T[KOut]>
-  // ): Factory<T, K> {
-  //   const partial: any = {};
-  //   partial[kOut] = new Derived<T, T[KOut]>(f);
-  //   return this.extend(partial);
-  // }
+  public withDerivation<KOut extends keyof T>(
+    kOut: KOut,
+    f: (v1: T, seq: number) => T[KOut] | Promise<T[KOut]>
+  ): Factory<T, K> {
+    const partial: any = {};
+    partial[kOut] = new Derived<T, T[KOut]>(f);
+    return this.extend(partial);
+  }
 
-  public withDerivation<KOut extends K>(
+  public withSelfDerivation<KOut extends K>(
     kOut: KOut,
     f: (v1: T, seq: number) => T[KOut] | Promise<T[KOut]>
   ): Factory<T, K> {

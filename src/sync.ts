@@ -129,6 +129,14 @@ export class Factory<T, K extends keyof T = keyof T> implements IFactory<T, K> {
     f: (v1: T, seq: number) => T[KOut]
   ): Factory<T, K> {
     const partial: any = {};
+    partial[kOut] = new Derived<T, T[KOut]>(f);
+    return this.extend(partial);
+  }
+  public withSelfDerivation<KOut extends K>(
+    kOut: KOut,
+    f: (v1: T, seq: number) => T[KOut]
+  ): Factory<T, K> {
+    const partial: any = {};
     partial[kOut] = new Derived<T, T[KOut]>((v2, seq) => {
       delete v2[kOut];
       const origValue = this._build([kOut], v2)[kOut];

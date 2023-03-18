@@ -187,7 +187,7 @@ describe("factories build stuff", () => {
     const factoryA = Sync.makeFactory<TypeA>({
       foo: Sync.each((n) => n + 2),
     });
-    const tenXFactory = factoryA.withDerivation("foo", (v) => {
+    const tenXFactory = factoryA.withSelfDerivation("foo", (v) => {
       return v.foo * 10;
     });
     const obj1 = tenXFactory.build();
@@ -202,7 +202,7 @@ describe("factories build stuff", () => {
     const factoryA = Sync.makeFactory<TypeA>({
       fooz: 15,
     });
-    const tenXFactory = factoryA.withDerivation("fooz", (v) => {
+    const tenXFactory = factoryA.withSelfDerivation("fooz", (v) => {
       return v.fooz * 10;
     });
     const obj1 = tenXFactory.build();
@@ -275,10 +275,14 @@ describe("factories build stuff", () => {
       })(), // inner: starts on seq 2
     });
     console.log("AWITHA ENDS", aWithA);
-    expect(aWithA.foo).toEqual(302);
-    expect(aWithA.bar).toEqual("302:2");
-    expect(aWithA.recur!.foo).toEqual(101);
-    expect(aWithA.recur!.bar).toEqual("101:1");
+    expect(aWithA.foo).toEqual(102);
+    expect(aWithA.bar).toEqual("102:2");
+    expect(aWithA.recur!.foo).toEqual(1);
+    expect(aWithA.recur!.bar).toEqual("1:1");
+    // expect(aWithA.foo).toEqual(302);
+    // expect(aWithA.bar).toEqual("302:2");
+    // expect(aWithA.recur!.foo).toEqual(101);
+    // expect(aWithA.recur!.bar).toEqual("101:1");
   });
   it("recursion does not call unnecessary functions overridden by derivation", () => {
     interface TypeA {
@@ -296,13 +300,13 @@ describe("factories build stuff", () => {
       recur: null,
     });
     const factoryAPrime = factoryA
-      .withDerivation("foo", (_v, n) => {
+      .withSelfDerivation("foo", (_v, n) => {
         // inner: factoryA.build().foo should be 0, n should be 1
         // outer: factoryA.build().foo should be 1, n should be 2
         const foo = factoryA.build().foo;
         return foo * 100 + n; // 001 : 102
       })
-      .withDerivation("bar", (v, n) => {
+      .withSelfDerivation("bar", (v, n) => {
         // inner: n should be 2, v.foo should be 001 -> "001:1"
         // outer: n should be 3, v.foo should be 102 -> "102:2"
         return v.foo + ":" + n;

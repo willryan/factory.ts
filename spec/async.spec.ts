@@ -299,7 +299,7 @@ describe("async factories build stuff", () => {
     const factoryA = Async.makeFactory<TypeA>({
       foo: Async.each((n) => n + 2),
     });
-    const tenXFactory = factoryA.withDerivation("foo", async (v) => {
+    const tenXFactory = factoryA.withSelfDerivation("foo", async (v) => {
       await sleep(0);
       return v.foo * 10;
     });
@@ -315,7 +315,7 @@ describe("async factories build stuff", () => {
     const factoryA = Async.makeFactory<TypeA>({
       fooz: 15,
     });
-    const tenXFactory = factoryA.withDerivation("fooz", async (v) => {
+    const tenXFactory = factoryA.withSelfDerivation("fooz", async (v) => {
       await sleep(0);
       return v.fooz * 10;
     });
@@ -364,7 +364,7 @@ describe("async factories build stuff", () => {
       recur: null,
     });
     const factoryAPrime = factoryA
-      .withDerivation("foo", async (v, n) => {
+      .withSelfDerivation("foo", async (v, n) => {
         await sleep(0);
         // recur: factoryA.build().foo should be 0, n should be 1
         // aWithA: factoryA.build().foo should be 1, n should be 2
@@ -375,7 +375,7 @@ describe("async factories build stuff", () => {
         console.log(`  derivation 'foo':`, { output, foo, v, n });
         return output;
       })
-      .withDerivation("bar", (v, n) => {
+      .withSelfDerivation("bar", (v, n) => {
         // recur: n should be 2, v.foo should be 001 -> "001:1"
         // aWithA: n should be 3, v.foo should be 102 -> "102:2"
         return v.foo + ":" + n;
@@ -416,13 +416,13 @@ describe("async factories build stuff", () => {
       recur: null,
     });
     const factoryAPrime = factoryA
-      .withDerivation("foo", async (_v, n) => {
+      .withSelfDerivation("foo", async (_v, n) => {
         // inner: factoryA.build().foo should be 0, n should be 1
         // outer: factoryA.build().foo should be 1, n should be 2
         const foo = (await factoryA.build()).foo;
         return foo * 100 + n; // 001 : 102
       })
-      .withDerivation("bar", (v, n) => {
+      .withSelfDerivation("bar", (v, n) => {
         // inner: n should be 2, v.foo should be 001 -> "001:1"
         // outer: n should be 3, v.foo should be 102 -> "102:2"
         return v.foo + ":" + n;
