@@ -367,8 +367,7 @@ describe("async factories build stuff", () => {
         // recur: factoryA.build().foo should be 0, n should be 1
         // aWithA: factoryA.build().foo should be 1, n should be 2
         const foo = (await factoryA.build()).foo;
-        const output = foo * 100 + n; // 001 : 102
-        return output;
+        return foo * 100 + n; // 001 : 102
       })
       .withDerivation("bar", (v, n) => {
         // recur: n should be 2, v.foo should be 001 -> "001:1"
@@ -379,11 +378,8 @@ describe("async factories build stuff", () => {
     expect(justA.foo).toEqual(99);
     const aWithA = await factoryAPrime.build({
       // outer: starts on seq 3
-      recur: await (async () => {
-        const val = await factoryAPrime.build(); // first call, with seqN 0
-        return val;
-      })(), // inner: starts on seq 2
-    });
+      recur: await factoryAPrime.build(), // first call, with seqN 0
+    }); // inner: starts on seq 2
     expect(aWithA.foo).toEqual(102);
     expect(aWithA.bar).toEqual("102:2");
     expect(aWithA.recur!.foo).toEqual(1);
