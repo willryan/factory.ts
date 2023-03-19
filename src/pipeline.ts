@@ -10,8 +10,10 @@ type PipePartialRec<P, T, K extends keyof T> = MaybePromiseFunc<
   RecPartial<Pick<T, K>> & Omit<T, K>
 >;
 
-export class Pipeline<P extends Record<string, unknown> = {}> implements PromiseLike<P> {
-  constructor(private current: Promise<P>) { }
+export class Pipeline<P extends Record<string, unknown> = {}>
+  implements PromiseLike<P>
+{
+  constructor(private current: Promise<P>) {}
 
   static start() {
     return new Pipeline(Promise.resolve({}));
@@ -22,14 +24,14 @@ export class Pipeline<P extends Record<string, unknown> = {}> implements Promise
     val: MaybePromiseFunc<P, P2>
   ): Pipeline<P & P2> {
     return new Pipeline(
-      this.current.then(async c => {
+      this.current.then(async (c) => {
         const v =
           typeof val === "function"
             ? await Async.lift((val as PromiseFunc<P, P2>)(c))
             : val;
         return {
           ...(c as any),
-          ...(v as any)
+          ...(v as any),
         };
       })
     );
@@ -45,7 +47,7 @@ export class Pipeline<P extends Record<string, unknown> = {}> implements Promise
     partial: keyof T extends KT ? PipePartial<P, T> : PipePartialRec<P, T, KT>
   ): Pipeline<P & { [k in K]: U }> {
     return new Pipeline(
-      this.current.then(async c => {
+      this.current.then(async (c) => {
         const p =
           typeof partial === "function"
             ? await Async.lift((partial as any)(c))
@@ -55,7 +57,7 @@ export class Pipeline<P extends Record<string, unknown> = {}> implements Promise
         (newV as any)[key] = val;
         return {
           ...(c as any),
-          ...newV
+          ...newV,
         };
       })
     );

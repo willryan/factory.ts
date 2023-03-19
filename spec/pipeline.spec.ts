@@ -16,42 +16,42 @@ interface ChildType {
 describe("pipelines", () => {
   const childFactory = Factory.makeFactory<ChildType>({
     name: "Kid",
-    grade: 1
+    grade: 1,
   });
   const parentFactory = Factory.makeFactoryWithRequired<ParentType, "spouse">(
     {
       name: "Parent",
-      birthday: Factory.each(i => Promise.resolve(new Date(`2017/05/${i}`))),
-      children: Factory.each(() => [])
+      birthday: Factory.each((i) => Promise.resolve(new Date(`2017/05/${i}`))),
+      children: Factory.each(() => []),
     },
     { startingSequenceNumber: 1 }
   );
-  const grandpaFactory = parentFactory.transform(parent => {
+  const grandpaFactory = parentFactory.transform((parent) => {
     return {
       ...parent,
-      spoils: true
+      spoils: true,
     };
   });
   it("builds data in steps", async () => {
     const p = Pipe.Pipeline.start()
       .addValues({ hello: "kitty", hola: "espanol" })
       .addValues(() => Promise.resolve({ byebye: "birdie" }))
-      .addValues(v => ({
+      .addValues((v) => ({
         corner: `${v.hello} corner`,
-        golf: v.byebye
+        golf: v.byebye,
       }))
       .addFactory(childFactory, "kiddo", { grade: 2 })
-      .addFactory(parentFactory, "dad", v =>
+      .addFactory(parentFactory, "dad", (v) =>
         Promise.resolve({
           name: "Dad",
           children: [v.kiddo],
-          spouse: null
+          spouse: null,
         })
       )
-      .addTxFactory(grandpaFactory, "gramps", v => ({
+      .addTxFactory(grandpaFactory, "gramps", (v) => ({
         name: "Gramps",
         children: [v.dad],
-        spouse: null
+        spouse: null,
       }));
     const data = await p;
     expect(data.hello).toEqual("kitty");
@@ -79,22 +79,22 @@ describe("pipelines", () => {
     const p = Pipe.Pipeline.start()
       .addValues({ hello: "kitty", hola: "espanol" })
       .addValues(() => Promise.resolve({ byebye: "birdie" }))
-      .addValues(v => ({
+      .addValues((v) => ({
         corner: `${v.hello} corner`,
-        golf: v.byebye
+        golf: v.byebye,
       }))
       .addFactory(childFactory, "kiddo", { grade: 2 })
-      .addFactory(parentFactory, "dad", v =>
+      .addFactory(parentFactory, "dad", (v) =>
         Promise.resolve({
           name: "Dad",
           children: [v.kiddo],
-          spouse: null
+          spouse: null,
         })
       )
-      .addTxFactory(grandpaFactory, "gramps", v => ({
+      .addTxFactory(grandpaFactory, "gramps", (v) => ({
         name: "Gramps",
         children: [v.dad],
-        spouse: null
+        spouse: null,
       }));
 
     const p_factory = p.toFactory();
