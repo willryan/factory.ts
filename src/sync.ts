@@ -55,17 +55,10 @@ export class Factory<T, K extends keyof T = keyof T> implements IFactory<T, K> {
   }
 
   public build = ((item?: RecPartial<T> & Omit<T, K>): T => {
-<<<<<<< HEAD
-    return this._build(null, item);
+    return this.buildInner(null, item);
   }) as FactoryFunc<T, K>;
 
-  private _build = (
-=======
-    return this.build_inner(null, item);
-  }) as FactoryFunc<T, K>;
-
-  private build_inner = (
->>>>>>> a02c13f (sync works, async refactored to be ready for changes)
+  private buildInner = (
     buildKeys: (keyof T)[] | null,
     item?: RecPartial<T> & Omit<T, K>
   ): T => {
@@ -122,27 +115,6 @@ export class Factory<T, K extends keyof T = keyof T> implements IFactory<T, K> {
     return new Factory<T & U, K | K2>(builder, this.config);
   }
 
-<<<<<<< HEAD
-  // public withDerivationOld<KOut extends keyof T>(
-  //   kOut: KOut,
-  //   f: (v1: T, seq: number) => T[KOut]
-  // ): Factory<T, K> {
-  //   const partial: any = {};
-  //   partial[kOut] = new Derived<T, T[KOut]>(f);
-  //   return this.extend(partial);
-  // }
-
-  public withDerivation<KOut extends K>(
-=======
-  public withDerivationOld<KOut extends keyof T>(
->>>>>>> a02c13f (sync works, async refactored to be ready for changes)
-    kOut: KOut,
-    f: (v1: T, seq: number) => T[KOut]
-  ): Factory<T, K> {
-    const partial: any = {};
-    partial[kOut] = new Derived<T, T[KOut]>(f);
-    return this.extend(partial);
-  }
   public withSelfDerivation<KOut extends K>(
     kOut: KOut,
     f: (v1: T, seq: number) => T[KOut]
@@ -150,7 +122,7 @@ export class Factory<T, K extends keyof T = keyof T> implements IFactory<T, K> {
     const partial: any = {};
     partial[kOut] = new Derived<T, T[KOut]>((v2, seq) => {
       delete v2[kOut];
-      const origValue = this._build([kOut], v2)[kOut];
+      const origValue = this.buildInner([kOut], v2)[kOut];
       v2[kOut] = origValue;
       return f(v2, seq);
     });
@@ -162,19 +134,7 @@ export class Factory<T, K extends keyof T = keyof T> implements IFactory<T, K> {
     f: (v1: T, seq: number) => T[KOut]
   ): Factory<T, K> {
     const partial: any = {};
-    //[kOut];
-    partial[kOut] = new Derived<T, T[KOut]>((v2, seq) => {
-      // console.log(`prop(${kOut}) func:`, f.toString());
-      // console.log(`prop(${kOut}) v2 original is ...`, v2);
-      // we need to modify v2[kOut] as it will be a derived now
-      delete v2[kOut];
-      // this getting what the value *would have been*, necessary for
-      // derivation based on original value
-      const origValue = this.build_inner([kOut], v2)[kOut];
-      v2[kOut] = origValue;
-      // console.log(`prop(${kOut}) v2 to use in derivation is ...`, v2);
-      return f(v2, seq);
-    });
+    partial[kOut] = new Derived<T, T[KOut]>(f);
     return this.extend(partial);
   }
 
