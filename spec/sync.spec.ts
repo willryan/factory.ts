@@ -259,13 +259,10 @@ describe("factories build stuff", () => {
     const aWithA = factoryAPrime.build({
       // outer: starts on seq 3
       recur: (() => {
-        console.log("RECUR STARTS");
         const val = factoryAPrime.build(); // first call, with seqN 0
-        console.log("RECUR ENDS", { val });
         return val;
       })(), // inner: starts on seq 2
     });
-    console.log("AWITHA ENDS", aWithA);
     expect(aWithA.foo).toEqual(102);
     expect(aWithA.bar).toEqual("102:2");
     expect(aWithA.recur!.foo).toEqual(1);
