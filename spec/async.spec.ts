@@ -355,8 +355,6 @@ describe("async factories build stuff", () => {
     }
     const factoryA = Async.makeFactory<TypeA>({
       foo: Async.each(async (n) => {
-        console.log("  original 'foo'", n);
-        console.trace();
         await sleep(0);
         return n;
       }),
@@ -364,40 +362,32 @@ describe("async factories build stuff", () => {
       recur: null,
     });
     const factoryAPrime = factoryA
-      .withSelfDerivation("foo", async (v, n) => {
+      .withDerivation("foo", async (_v, n) => {
         await sleep(0);
         // recur: factoryA.build().foo should be 0, n should be 1
         // aWithA: factoryA.build().foo should be 1, n should be 2
-        console.log(`  derive 'foo':`, { v, n });
         const foo = (await factoryA.build()).foo;
-        console.trace();
         const output = foo * 100 + n; // 001 : 102
-        console.log(`  derivation 'foo':`, { output, foo, v, n });
         return output;
       })
-      .withSelfDerivation("bar", (v, n) => {
+      .withDerivation("bar", (v, n) => {
         // recur: n should be 2, v.foo should be 001 -> "001:1"
         // aWithA: n should be 3, v.foo should be 102 -> "102:2"
         return v.foo + ":" + n;
       });
-    console.log("build justA");
     const justA = await factoryAPrime.build({ foo: 99 }); // seq 1
     expect(justA.foo).toEqual(99);
-    console.log("AWITHA STARTS");
     const aWithA = await factoryAPrime.build({
       // outer: starts on seq 3
       recur: await (async () => {
-        console.log("RECUR STARTS");
         const val = await factoryAPrime.build(); // first call, with seqN 0
-        console.log("RECUR ENDS", { val });
         return val;
       })(), // inner: starts on seq 2
     });
-    console.log("AWITHA ENDS", aWithA);
-    expect(aWithA.foo).toEqual(302);
-    expect(aWithA.bar).toEqual("302:2");
-    expect(aWithA.recur!.foo).toEqual(101);
-    expect(aWithA.recur!.bar).toEqual("101:1");
+    expect(aWithA.foo).toEqual(102);
+    expect(aWithA.bar).toEqual("102:2");
+    expect(aWithA.recur!.foo).toEqual(1);
+    expect(aWithA.recur!.bar).toEqual("1:1");
   });
   it("recursion does not call unnecessary functions overridden by derivation", async () => {
     interface TypeA {
