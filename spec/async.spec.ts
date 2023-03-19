@@ -403,14 +403,10 @@ describe("async factories build stuff", () => {
     });
     const factoryAPrime = factoryA
       .withSelfDerivation("foo", async (_v, n) => {
-        // inner: factoryA.build().foo should be 0, n should be 1
-        // outer: factoryA.build().foo should be 1, n should be 2
         const foo = (await factoryA.build()).foo;
-        return foo * 100 + n; // 001 : 102
+        return foo * 100 + n;
       })
       .withSelfDerivation("bar", (v, n) => {
-        // inner: n should be 2, v.foo should be 001 -> "001:1"
-        // outer: n should be 3, v.foo should be 102 -> "102:2"
         return v.foo + ":" + n;
       });
     firstBarFunctionCallCount = 0;

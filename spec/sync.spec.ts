@@ -280,16 +280,12 @@ describe("factories build stuff", () => {
       recur: null,
     });
     const factoryAPrime = factoryA
-      .withDerivation("foo", (_v, n) => {
-        // recur: factoryA.build().foo should be 0, n should be 1
-        // aWithA: factoryA.build().foo should be 1, n should be 2
+      .withSelfDerivation("foo", (_v, n) => {
         const foo = factoryA.build().foo;
         const output = foo * 100 + n; // 001 : 102
         return output;
       })
-      .withDerivation("bar", (v, n) => {
-        // recur: n should be 2, v.foo should be 001 -> "001:1"
-        // aWithA: n should be 3, v.foo should be 102 -> "102:2"
+      .withSelfDerivation("bar", (v, n) => {
         return v.foo + ":" + n;
       });
     firstBarFunctionCallCount = 0;
