@@ -237,23 +237,16 @@ describe("factories build stuff", () => {
       recur: null | TypeA;
     }
     const factoryA = Sync.makeFactory<TypeA>({
-      foo: Sync.each((n) => {
-        console.log("  original 'foo'", n);
-        console.trace();
-        return n;
-      }),
+      foo: Sync.each((n) => n),
       bar: "hello",
       recur: null,
     });
     const factoryAPrime = factoryA
-      .withDerivation("foo", (v, n) => {
+      .withDerivation("foo", (_v, n) => {
         // recur: factoryA.build().foo should be 0, n should be 1
         // aWithA: factoryA.build().foo should be 1, n should be 2
-        console.log(`  derive 'foo':`, { v, n });
         const foo = factoryA.build().foo;
-        console.trace();
         const output = foo * 100 + n; // 001 : 102
-        console.log(`  derivation 'foo':`, { output, foo, v, n });
         return output;
       })
       .withDerivation("bar", (v, n) => {
@@ -261,10 +254,8 @@ describe("factories build stuff", () => {
         // aWithA: n should be 3, v.foo should be 102 -> "102:2"
         return v.foo + ":" + n;
       });
-    console.log("build justA");
     const justA = factoryAPrime.build({ foo: 99 }); // seq 1
     expect(justA.foo).toEqual(99);
-    console.log("AWITHA STARTS");
     const aWithA = factoryAPrime.build({
       // outer: starts on seq 3
       recur: (() => {
