@@ -51,7 +51,8 @@ export interface IFactory<T, K extends keyof T, U> {
 }
 
 export class Factory<T, K extends keyof T = keyof T>
-  implements IFactory<T, K, T> {
+  implements IFactory<T, K, T>
+{
   private seqNum: number;
   private getStartingSequenceNumber = () =>
     (this.config && this.config.startingSequenceNumber) || 0;
@@ -227,7 +228,8 @@ export class Factory<T, K extends keyof T = keyof T>
 }
 
 export class TransformFactory<T, K extends keyof T, U>
-  implements IFactory<T, K, U> {
+  implements IFactory<T, K, U>
+{
   constructor(
     private readonly inner: Factory<T, K>,
     private readonly transform: (t: T) => U | Promise<U>
@@ -247,7 +249,7 @@ export class TransformFactory<T, K extends keyof T, U>
 }
 
 export type Builder<T, K extends keyof T = keyof T> = {
-  [P in K]: T[P] | Promise<T[P]> | Generator<T[P]> | Derived<T, T[P]>
+  [P in K]: T[P] | Promise<T[P]> | Generator<T[P]> | Derived<T, T[P]>;
 };
 
 export function val<T>(val: T): Generator<T> {
@@ -308,7 +310,9 @@ export function makeFactory<T>(
 }
 
 export function makeFactoryWithRequired<T, K extends keyof T>(
-  builder: Builder<T, Exclude<keyof T, K>> | Promise<Builder<T, Exclude<keyof T, K>>>,
+  builder:
+    | Builder<T, Exclude<keyof T, K>>
+    | Promise<Builder<T, Exclude<keyof T, K>>>,
   config?: AsyncFactoryConfig
 ): Factory<T, Exclude<keyof T, K>> {
   return new Factory(builder, config);
