@@ -525,48 +525,23 @@ describe("factories build stuff", () => {
     });
     expect(instanceOfData.payload).toEqual(null);
   });
+  it("derives values with factories that didn't work in issue #55", () => {
+    const userFactory = Sync.makeFactory({
+      firstName: "Peter",
+      lastName: "Parker",
+    });
+
+    const userWithMiddleNameFactory = userFactory.withSelfDerivation(
+      "firstName",
+      (user) => {
+        // console.log("ummm", user);
+        return user.firstName + " Benjamin";
+      }
+    );
+
+    const originalUser = userFactory.build({});
+    expect(originalUser.firstName).toEqual("Peter");
+    const middleNameUser = userWithMiddleNameFactory.build({});
+    expect(middleNameUser.firstName).toEqual("Peter Benjamin");
+  });
 });
-
-// const userFactory = Sync.makeFactory({
-//   firstName: "Peter",
-//   lastName: "Parker",
-// });
-
-// // Doesn't work - firstName is an empty object
-// const userWithMiddleNameFactory = userFactory.withDerivation(
-//   "firstName",
-//   (user) => {
-//     console.log("ummm", user);
-//     return user.firstName + " Benjamin";
-//   }
-// );
-
-// // Also doesn't work
-// const altUserWithMiddleNameFactory = userFactory.withDerivation1(
-//   ["firstName"],
-//   "firstName",
-//   (firstName) => {
-//     return firstName + " Benjamin";
-//   }
-// );
-
-// // Works for different fields
-// const userWithSameNamesFactory = userFactory.withDerivation(
-//   "firstName",
-//   (user) => {
-//     return user.lastName;
-//   }
-// );
-
-// console.log(
-//   JSON.stringify(
-//     {
-//       userFactory: userFactory.build({}),
-//       userWithMiddleNameFactory: userWithMiddleNameFactory.build({}),
-//       altUserWithMiddleNameFactory: altUserWithMiddleNameFactory.build({}),
-//       userWithSameNamesFactory: userWithSameNamesFactory.build({}),
-//     },
-//     null,
-//     2
-//   )
-// );
