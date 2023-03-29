@@ -130,6 +130,8 @@ Personally I prefer to be explicit about the dependent keys, but it doesn't real
 
 Derivations are processed in the order they are defined, and all `withDerivation` functions produce a new immutable Factory.
 
+If you wish to use an underlying factory's returned value for a given property as _input_ to derive a new value for the property, you can use `withSelfDerviation()`. This will ensure the key you are deriving has a valid starting value (not the case when using `withDerivation`).
+
 Finally, you could instantiate a `Derived<TOwner,TProperty>` for the value of a property inside a `Factory.makeFactory` definition, but the type inference can't help you as much - you'll have to indicate the type of TOwner and TProperty.
 
 ### Combining factories
