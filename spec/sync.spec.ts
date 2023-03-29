@@ -93,7 +93,6 @@ describe("factories build stuff", () => {
       lastName: Sync.each(() => "Bond"),
       fullName: "",
     }).withDerivation("fullName", (p) => `${p.firstName} ${p.lastName}`);
-    //.withDerivation2(['firstName','lastName'],'fullName', (fn, ln) => `${fn} ${ln}`);
     const bond = personFactory.build({ firstName: "James" });
     expect(bond.fullName).toEqual("James Bond");
     const doubleO = personFactory.build();
@@ -180,6 +179,56 @@ describe("factories build stuff", () => {
     expect(aStore.aisle.typeOfFood).toEqual("Junk Food");
     expect(aStore.aisle.tags).toEqual(["a", "b"]);
   });
+  it("supports self-recursion with generator", () => {
+    interface TypeA {
+      foo: number;
+    }
+    const factoryA = Sync.makeFactory<TypeA>({
+      foo: Sync.each((n) => n + 2),
+    });
+    const tenXFactory = factoryA.withSelfDerivation("foo", (v) => {
+      return v.foo * 10;
+    });
+    const obj1 = tenXFactory.build();
+    expect(obj1.foo).toEqual(20);
+    const obj2 = tenXFactory.build({ foo: 25 });
+    expect(obj2.foo).toEqual(25);
+  });
+  it("supports self-recursion with default", () => {
+    interface TypeA {
+      fooz: number;
+    }
+    const factoryA = Sync.makeFactory<TypeA>({
+      fooz: 15,
+    });
+    const tenXFactory = factoryA.withSelfDerivation("fooz", (v) => {
+      return v.fooz * 10;
+    });
+    const obj1 = tenXFactory.build();
+    expect(obj1.fooz).toEqual(150);
+    const obj2 = tenXFactory.build({ fooz: 25 });
+    expect(obj2.fooz).toEqual(25);
+  });
+  it.skip("supports tuples at root (TODO)", () => {
+    const generator: Sync.Generator<[number, number]> = Sync.each<
+      [number, number]
+    >((seq) => [seq * 2, seq * 2 + 1]);
+    const factory = Sync.makeFactory<[number, number]>(generator.build(1));
+    const value = factory.build();
+    expect(Array.isArray(value)).toEqual(true);
+    expect(value).toEqual([2, 3]);
+  });
+  it("supports tuples as members", () => {
+    const factory = Sync.makeFactory<{ foo: [number, number] }>(
+      {
+        foo: Sync.each((seq) => [seq * 2, seq * 2 + 1]),
+      },
+      { startingSequenceNumber: 1 }
+    );
+    const value = factory.build();
+    expect(Array.isArray(value.foo)).toEqual(true);
+    expect(value.foo).toEqual([2, 3]);
+  });
   it("supports recursive factories", () => {
     interface TypeA {
       foo: number;
@@ -193,26 +242,87 @@ describe("factories build stuff", () => {
     });
     const factoryAPrime = factoryA
       .withDerivation("foo", (_v, n) => {
-        // inner: factoryA.build().foo should be 0, n should be 1
-        // outer: factoryA.build().foo should be 1, n should be 2
+        // recur: factoryA.build().foo should be 0, n should be 1
+        // aWithA: factoryA.build().foo should be 1, n should be 2
         const foo = factoryA.build().foo;
         return foo * 100 + n; // 001 : 102
       })
       .withDerivation("bar", (v, n) => {
-        // inner: n should be 2, v.foo should be 001 -> "001:1"
-        // outer: n should be 3, v.foo should be 102 -> "102:2"
+        // recur: n should be 2, v.foo should be 001 -> "001:1"
+        // aWithA: n should be 3, v.foo should be 102 -> "102:2"
         return v.foo + ":" + n;
       });
     const justA = factoryAPrime.build({ foo: 99 }); // seq 1
     expect(justA.foo).toEqual(99);
     const aWithA = factoryAPrime.build({
       // outer: starts on seq 3
-      recur: factoryAPrime.build(), // inner: starts on seq 2
+      recur: factoryAPrime.build(), // first call, with seqN 0
     });
     expect(aWithA.foo).toEqual(102);
     expect(aWithA.bar).toEqual("102:2");
     expect(aWithA.recur!.foo).toEqual(1);
     expect(aWithA.recur!.bar).toEqual("1:1");
+  });
+  it("recursion does not call unnecessary functions overridden by derivation", () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+      recur: null | TypeA;
+    }
+    let firstBarFunctionCallCount = 0;
+    const factoryA = Sync.makeFactory<TypeA>({
+      foo: Sync.each((n) => n),
+      bar: Sync.each(() => {
+        firstBarFunctionCallCount += 1;
+        return "hello";
+      }),
+      recur: null,
+    });
+    const factoryAPrime = factoryA
+      .withSelfDerivation("foo", (_v, n) => {
+        const foo = factoryA.build().foo;
+        const output = foo * 100 + n; // 001 : 102
+        return output;
+      })
+      .withSelfDerivation("bar", (v, n) => {
+        return v.foo + ":" + n;
+      });
+    firstBarFunctionCallCount = 0;
+    const justA = factoryAPrime.build({ foo: 99 }); // seq 1
+    expect(justA.foo).toEqual(99);
+    expect(firstBarFunctionCallCount).toEqual(1);
+  });
+  it("recursion does not call unnecessary functions overridden by derivation", () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+      recur: null | TypeA;
+    }
+    let firstBarFunctionCallCount = 0;
+    const factoryA = Sync.makeFactory<TypeA>({
+      foo: Sync.each((n) => n),
+      bar: Sync.each(() => {
+        firstBarFunctionCallCount += 1;
+        return "hello";
+      }),
+      recur: null,
+    });
+    const factoryAPrime = factoryA
+      .withSelfDerivation("foo", (_v, n) => {
+        // inner: factoryA.build().foo should be 0, n should be 1
+        // outer: factoryA.build().foo should be 1, n should be 2
+        const foo = factoryA.build().foo;
+        return foo * 100 + n; // 001 : 102
+      })
+      .withSelfDerivation("bar", (v, n) => {
+        // inner: n should be 2, v.foo should be 001 -> "001:1"
+        // outer: n should be 3, v.foo should be 102 -> "102:2"
+        return v.foo + ":" + n;
+      });
+    firstBarFunctionCallCount = 0;
+    const justA = factoryAPrime.build({ foo: 99 }); // seq 1
+    expect(justA.foo).toEqual(99);
+    expect(firstBarFunctionCallCount).toEqual(1);
   });
   it("allows custom seq num start", () => {
     interface TypeA {
@@ -414,5 +524,24 @@ describe("factories build stuff", () => {
       payload: null,
     });
     expect(instanceOfData.payload).toEqual(null);
+  });
+  it("derives values with factories that didn't work in issue #55", () => {
+    const userFactory = Sync.makeFactory({
+      firstName: "Peter",
+      lastName: "Parker",
+    });
+
+    const userWithMiddleNameFactory = userFactory.withSelfDerivation(
+      "firstName",
+      (user) => {
+        // console.log("ummm", user);
+        return user.firstName + " Benjamin";
+      }
+    );
+
+    const originalUser = userFactory.build({});
+    expect(originalUser.firstName).toEqual("Peter");
+    const middleNameUser = userWithMiddleNameFactory.build({});
+    expect(middleNameUser.firstName).toEqual("Peter Benjamin");
   });
 });

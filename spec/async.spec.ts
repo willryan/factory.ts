@@ -19,6 +19,14 @@ interface WidgetType {
   id: number;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((res) => {
+    global.setTimeout(() => {
+      res();
+    }, ms);
+  });
+}
+
 describe("async factories build stuff", () => {
   const childFactory = Async.makeFactory<ChildType>({
     name: "Kid",
@@ -282,6 +290,128 @@ describe("async factories build stuff", () => {
     expect(a[0].foo).toEqual(0);
     expect(a[1].foo).toEqual(1);
     expect(a[2].foo).toEqual(2);
+  });
+  it("supports self-recursion with generator", async () => {
+    interface TypeA {
+      foo: number;
+    }
+    const factoryA = Async.makeFactory<TypeA>({
+      foo: Async.each((n) => n + 2),
+    });
+    const tenXFactory = factoryA.withSelfDerivation("foo", async (v) => {
+      await sleep(0);
+      return v.foo * 10;
+    });
+    const obj1 = await tenXFactory.build();
+    expect(obj1.foo).toEqual(20);
+    const obj2 = await tenXFactory.build({ foo: 25 });
+    expect(obj2.foo).toEqual(25);
+  });
+  it("supports self-recursion with default", async () => {
+    interface TypeA {
+      fooz: number;
+    }
+    const factoryA = Async.makeFactory<TypeA>({
+      fooz: 15,
+    });
+    const tenXFactory = factoryA.withSelfDerivation("fooz", async (v) => {
+      await sleep(0);
+      return v.fooz * 10;
+    });
+    const obj1 = await tenXFactory.build();
+    expect(obj1.fooz).toEqual(150);
+    const obj2 = await tenXFactory.build({ fooz: 25 });
+    expect(obj2.fooz).toEqual(25);
+  });
+  it.skip("supports tuples at root (TODO)", async () => {
+    const generator: Async.Generator<[number, number]> = Async.each<
+      [number, number]
+    >((seq) => [seq * 2, seq * 2 + 1]);
+    const factory = Async.makeFactory<[number, number]>(generator.build(1));
+    const value = await factory.build();
+    expect(Array.isArray(value)).toEqual(true);
+    expect(value).toEqual([2, 3]);
+  });
+  it("supports tuples as members", async () => {
+    const factory = Async.makeFactory<{ foo: [number, number] }>(
+      {
+        foo: Async.each(async (seq) => {
+          await sleep(0);
+          return [seq * 2, seq * 2 + 1];
+        }),
+      },
+      { startingSequenceNumber: 1 }
+    );
+    const value = await factory.build();
+    expect(Array.isArray(value.foo)).toEqual(true);
+    expect(value.foo).toEqual([2, 3]);
+  });
+  it("supports recursive factories", async () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+      recur: null | TypeA;
+    }
+    const factoryA = Async.makeFactory<TypeA>({
+      foo: Async.each(async (n) => {
+        await sleep(0);
+        return n;
+      }),
+      bar: "hello",
+      recur: null,
+    });
+    const factoryAPrime = factoryA
+      .withDerivation("foo", async (_v, n) => {
+        await sleep(0);
+        // recur: factoryA.build().foo should be 0, n should be 1
+        // aWithA: factoryA.build().foo should be 1, n should be 2
+        const foo = (await factoryA.build()).foo;
+        return foo * 100 + n; // 001 : 102
+      })
+      .withDerivation("bar", (v, n) => {
+        // recur: n should be 2, v.foo should be 001 -> "001:1"
+        // aWithA: n should be 3, v.foo should be 102 -> "102:2"
+        return v.foo + ":" + n;
+      });
+    const justA = await factoryAPrime.build({ foo: 99 }); // seq 1
+    expect(justA.foo).toEqual(99);
+    const aWithA = await factoryAPrime.build({
+      // outer: starts on seq 3
+      recur: await factoryAPrime.build(), // first call, with seqN 0
+    }); // inner: starts on seq 2
+    expect(aWithA.foo).toEqual(102);
+    expect(aWithA.bar).toEqual("102:2");
+    expect(aWithA.recur!.foo).toEqual(1);
+    expect(aWithA.recur!.bar).toEqual("1:1");
+  });
+  it("recursion does not call unnecessary functions overridden by derivation", async () => {
+    interface TypeA {
+      foo: number;
+      bar: string;
+      recur: null | TypeA;
+    }
+    let firstBarFunctionCallCount = 0;
+    const factoryA = Async.makeFactory<TypeA>({
+      foo: Async.each((n) => n),
+      bar: Async.each(async () => {
+        await sleep(0);
+        firstBarFunctionCallCount += 1;
+        return "hello";
+      }),
+      recur: null,
+    });
+    const factoryAPrime = factoryA
+      .withSelfDerivation("foo", async (_v, n) => {
+        const foo = (await factoryA.build()).foo;
+        return foo * 100 + n;
+      })
+      .withSelfDerivation("bar", (v, n) => {
+        return v.foo + ":" + n;
+      });
+    firstBarFunctionCallCount = 0;
+    const justA = await factoryAPrime.build({ foo: 99 }); // seq 1
+    expect(justA.foo).toEqual(99);
+    expect(firstBarFunctionCallCount).toEqual(1);
   });
   it("allows custom seq num start", async () => {
     interface TypeA {

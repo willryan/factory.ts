@@ -5,6 +5,14 @@ export interface SyncFactoryConfig {
   readonly startingSequenceNumber?: number;
 }
 
+export type FactoryFunc<T, K extends keyof T> = keyof T extends K
+  ? (item?: RecPartial<T>) => T
+  : (item: RecPartial<T> & Omit<T, K>) => T;
+
+export type ListFactoryFunc<T, K extends keyof T> = keyof T extends K
+  ? (count: number, item?: RecPartial<T>) => T[]
+  : (count: number, item: RecPartial<T> & Omit<T, K>) => T[];
+
 export class Generator<T> {
   constructor(readonly func: (seq: number) => T) {}
   public build(seq: number): T {
@@ -19,15 +27,12 @@ export class Derived<TOwner, TProperty> {
   }
 }
 
-export type FactoryFunc<T, K extends keyof T> = keyof T extends K
-  ? (item?: RecPartial<T>) => T
-  : (item: RecPartial<T> & Omit<T, K>) => T;
+export interface IFactory<T, K extends keyof T> {
+  build: FactoryFunc<T, K>;
+  buildList: ListFactoryFunc<T, K>;
+}
 
-export type ListFactoryFunc<T, K extends keyof T> = keyof T extends K
-  ? (count: number, item?: RecPartial<T>) => T[]
-  : (count: number, item: RecPartial<T> & Omit<T, K>) => T[];
-
-export class Factory<T, K extends keyof T = keyof T> {
+export class Factory<T, K extends keyof T = keyof T> implements IFactory<T, K> {
   private seqNum: number;
   private getStartingSequenceNumber = () =>
     (this.config && this.config.startingSequenceNumber) || 0;
@@ -50,6 +55,13 @@ export class Factory<T, K extends keyof T = keyof T> {
   }
 
   public build = ((item?: RecPartial<T> & Omit<T, K>): T => {
+    return this.buildInner(null, item);
+  }) as FactoryFunc<T, K>;
+
+  private buildInner = (
+    buildKeys: (keyof T)[] | null,
+    item?: RecPartial<T> & Omit<T, K>
+  ): T => {
     const seqNum = this.seqNum;
     this.seqNum++;
     const base = buildBase(seqNum, this.expandBuilder());
@@ -57,14 +69,23 @@ export class Factory<T, K extends keyof T = keyof T> {
     if (item) {
       v = recursivePartialOverride(v, item);
     }
-    const keys = Object.keys(item || {});
+    const directlySpecifiedKeys = Object.keys(item || {});
+    if (!buildKeys) {
+      buildKeys = base.derived.map((d) => d.key) as (keyof T)[];
+    }
     for (const der of base.derived) {
-      if (keys.indexOf(der.key) < 0) {
-        (v as any)[der.key] = der.derived.build(v, seqNum);
+      if (!buildKeys.includes(der.key as keyof T)) {
+        // console.log(`skip unspecified build key ${der.key}`);
+        continue;
       }
+      if (directlySpecifiedKeys.includes(der.key)) {
+        // console.log(`skip explicitly defined build key ${der.key}`);
+        continue;
+      }
+      (v as any)[der.key] = der.derived.build(v, seqNum);
     }
     return v;
-  }) as FactoryFunc<T, K>;
+  };
 
   public buildList = ((
     count: number,
@@ -94,7 +115,21 @@ export class Factory<T, K extends keyof T = keyof T> {
     return new Factory<T & U, K | K2>(builder, this.config);
   }
 
-  public withDerivation<KOut extends keyof T>(
+  public withSelfDerivation<KOut extends K>(
+    kOut: KOut,
+    f: (v1: T, seq: number) => T[KOut]
+  ): Factory<T, K> {
+    const partial: any = {};
+    partial[kOut] = new Derived<T, T[KOut]>((v2, seq) => {
+      delete v2[kOut];
+      const origValue = this.buildInner([kOut], v2)[kOut];
+      v2[kOut] = origValue;
+      return f(v2, seq);
+    });
+    return this.extend(partial);
+  }
+
+  public withDerivation<KOut extends K>(
     kOut: KOut,
     f: (v1: T, seq: number) => T[KOut]
   ): Factory<T, K> {
