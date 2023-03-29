@@ -1,7 +1,6 @@
 import * as Async from "../src/async";
 import * as Sync from "../src/sync";
 import { makeFactory } from "../src/async";
-import { isArray } from "util";
 
 interface ParentType {
   name: string | null;
@@ -330,7 +329,7 @@ describe("async factories build stuff", () => {
     >((seq) => [seq * 2, seq * 2 + 1]);
     const factory = Async.makeFactory<[number, number]>(generator.build(1));
     const value = await factory.build();
-    expect(isArray(value)).toEqual(true);
+    expect(Array.isArray(value)).toEqual(true);
     expect(value).toEqual([2, 3]);
   });
   it("supports tuples as members", async () => {
@@ -344,7 +343,7 @@ describe("async factories build stuff", () => {
       { startingSequenceNumber: 1 }
     );
     const value = await factory.build();
-    expect(isArray(value.foo)).toEqual(true);
+    expect(Array.isArray(value.foo)).toEqual(true);
     expect(value.foo).toEqual([2, 3]);
   });
   it("supports recursive factories", async () => {

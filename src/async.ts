@@ -91,11 +91,11 @@ export class Factory<T, K extends keyof T = keyof T>
     }
     for (const der of base.derived) {
       if (!buildKeys.includes(der.key as keyof T)) {
-        console.log(`skip unspecified build key ${der.key}`);
+        // console.log(`skip unspecified build key ${der.key}`);
         continue;
       }
       if (directlySpecifiedKeys.includes(der.key)) {
-        console.log(`skip explicitly defined build key ${der.key}`);
+        // console.log(`skip explicitly defined build key ${der.key}`);
         continue;
       }
       (v as any)[der.key] = await der.derived.build(v, seqNum);
