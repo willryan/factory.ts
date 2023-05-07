@@ -65,7 +65,7 @@ export class Factory<T, K extends keyof T = keyof T> implements IFactory<T, K> {
     const seqNum = this.seqNum;
     this.seqNum++;
     const base = buildBase(seqNum, this.expandBuilder());
-    let v = Object.assign({}, base.value); //, item);
+    let v: T = Object.assign({}, base.value); //, item);
     if (item) {
       v = recursivePartialOverride(v, item);
     }
