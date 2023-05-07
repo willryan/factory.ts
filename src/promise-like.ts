@@ -1,7 +1,11 @@
 import { RecPartial, Omit, recursivePartialOverride } from "./shared";
 import * as cloneDeep from "clone-deep";
 
-export interface AsyncFactoryConfig {
+// `async/await` functions do implicit promise wrapping,
+// so they cannot be used with PromiseLike without
+// lifting into Promise and breaking syncronicity.
+
+export interface FactoryConfig {
   readonly startingSequenceNumber?: number;
 }
 
@@ -13,7 +17,7 @@ export type ListFactoryFunc<T, K extends keyof T, U = T> = keyof T extends K
   ? (count: number, item?: RecPartial<T>) => PromiseLike<U[]>
   : (count: number, item: RecPartial<T> & Omit<T, K>) => PromiseLike<U[]>;
 
-function isPromiseLike<T>(t: T | PromiseLike<T>): t is PromiseLike<T> {
+export function isPromiseLike<T>(t: T | PromiseLike<T>): t is PromiseLike<T> {
   return !!t && typeof (t as any)["then"] === "function";
 }
 
@@ -41,9 +45,8 @@ function serialReduce<T, A>(
   fn: (a: A, t: T, idx: number) => PromiseLike<A>,
   initAcc: PromiseLike<A>
 ): PromiseLike<A> {
-  return ts.reduce(async (acc, elem, idx) => {
-    const v = await acc;
-    return await fn(v, elem, idx);
+  return ts.reduce((acc, elem, idx) => {
+    return acc.then((v) => fn(v, elem, idx));
   }, initAcc);
 }
 
@@ -64,7 +67,8 @@ export class Derived<TOwner, TProperty> {
     ) => TProperty | PromiseLike<TProperty>,
     readonly lift: Lift
   ) {}
-  public build(owner: TOwner, seq: number): PromiseLike<TProperty> {
+  // ewww
+  public buildInner(owner: TOwner, seq: number): PromiseLike<TProperty> {
     return this.lift(this.func(owner, seq));
   }
 }
@@ -84,7 +88,7 @@ export class Factory<T, K extends keyof T = keyof T>
 
   constructor(
     readonly builder: Builder<T, K> | PromiseLike<Builder<T, K>>,
-    private readonly config: AsyncFactoryConfig | undefined,
+    private readonly config: FactoryConfig | undefined,
     readonly lift: Lift
   ) {
     this.seqNum = this.getStartingSequenceNumber();
@@ -123,7 +127,7 @@ export class Factory<T, K extends keyof T = keyof T>
           if (directlySpecifiedKeys.includes(der.key)) {
             return this.lift(acc);
           }
-          return der.derived.build(v, seqNum).then((r) => {
+          return der.derived.buildInner(v, seqNum).then((r) => {
             (acc as any)[der.key] = r;
             return acc;
           });
@@ -180,11 +184,13 @@ export class Factory<T, K extends keyof T = keyof T>
     f: (v1: T, seq: number) => T[KOut] | PromiseLike<T[KOut]>
   ): Factory<T, K> {
     const partial: any = {};
-    partial[kOut] = new Derived<T, T[KOut]>(async (v2, seq) => {
+    partial[kOut] = new Derived<T, T[KOut]>((v2, seq) => {
       delete v2[kOut];
-      const origValue = (await this.buildInner([kOut], v2))[kOut];
-      v2[kOut] = origValue;
-      return f(v2, seq);
+      return this.buildInner([kOut], v2).then((vv) => {
+        const origValue = vv[kOut];
+        v2[kOut] = origValue;
+        return f(v2, seq);
+      });
     }, this.lift);
     return this.extend(partial);
   }
@@ -363,15 +369,26 @@ function buildBase<T, K extends keyof T>(
     const derived: BaseDerived[] = [];
     return serialReduce(
       keys,
-      async (tt, key) => {
+      (tt, key) => {
+        function rewrap(derived: BaseDerived[], value: any) {
+          return {
+            derived,
+            value: {
+              ...tt.value,
+              [key]: value,
+            },
+          };
+        }
         const v = (resolvedBuilder as any)[key];
         let value = v;
         let derived = tt.derived;
         if (!!v && typeof v === "object") {
           if (isPromiseLike(v)) {
-            value = await v;
+            return v.then((value) => rewrap(derived, value));
           } else if (v.constructor === Generator) {
-            value = await (v as Generator<any>).build(seqNum);
+            return (v as Generator<any>)
+              .build(seqNum)
+              .then((value) => rewrap(derived, value));
           } else if (v.constructor == Derived) {
             derived = [...tt.derived, { key, derived: v }];
             // } else if (v.constructor === Sync.Generator) {
@@ -382,13 +399,7 @@ function buildBase<T, K extends keyof T>(
             value = cloneDeep(v);
           }
         }
-        return {
-          derived,
-          value: {
-            ...tt.value,
-            [key]: value,
-          },
-        };
+        return lift(rewrap(derived, value));
       },
       lift({ value: {}, derived } as BaseBuild<T>)
     );
@@ -398,7 +409,7 @@ function buildBase<T, K extends keyof T>(
 export function makeFactory<T>(
   lift: Lift,
   builder: Builder<T, keyof T> | PromiseLike<Builder<T, keyof T>>,
-  config?: AsyncFactoryConfig
+  config?: FactoryConfig
 ): Factory<T, keyof T> {
   return new Factory(builder, config, lift);
 }
@@ -408,7 +419,7 @@ export function makeFactoryWithRequired<T, K extends keyof T>(
   builder:
     | Builder<T, Exclude<keyof T, K>>
     | PromiseLike<Builder<T, Exclude<keyof T, K>>>,
-  config?: AsyncFactoryConfig
+  config?: FactoryConfig
 ): Factory<T, Exclude<keyof T, K>> {
   return new Factory(builder, config, lift);
 }
