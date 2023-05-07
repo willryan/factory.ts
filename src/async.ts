@@ -81,7 +81,7 @@ export class Factory<T, K extends keyof T = keyof T>
     const seqNum = this.seqNum;
     this.seqNum++;
     const base = await buildBase(seqNum, this.builder);
-    let v = Object.assign({}, base.value); //, item);
+    let v: T = Object.assign({}, base.value); //, item);
     if (item) {
       v = recursivePartialOverride(v, item);
     }
