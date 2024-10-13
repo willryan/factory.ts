@@ -98,6 +98,36 @@ describe("factories build stuff", () => {
     const doubleO = personFactory.build();
     expect(doubleO.fullName).toEqual("Double-O Bond");
   });
+  it("successfully overrides a derivation", () => {
+    interface A {
+      prop1: string;
+      prop2: string;
+      prop3: string;
+    }
+
+    interface B {
+      a: A;
+      b: string;
+    }
+    const factory2 = Sync.makeFactory<B>(() => {
+      const value = "value";
+      return {
+        a: {} as A,
+        b: value,
+      };
+    }).withDerivation("a", (b) => ({
+      prop1: b.b,
+      prop2: b.b,
+      prop3: b.b,
+    }));
+    expect(factory2.build({ b: "b" })).toEqual({
+      a: { prop1: "b", prop2: "b", prop3: "b" }, b: "b"
+    });
+    expect(factory2.build({ b: "b", a: { prop1: "a" } })).toEqual({
+      a: { prop1: "a" }, b: "b"
+    });
+
+  });
   it("can build a list of items", () => {
     const children = childFactory.buildList(3, { name: "Bruce" });
     expect(children.length).toEqual(3);

@@ -28,7 +28,7 @@ export function lift<T>(t: T | Promise<T>): Promise<T> {
 }
 
 export class Generator<T> {
-  constructor(readonly func: (seq: number) => T | Promise<T>) {}
+  constructor(readonly func: (seq: number) => T | Promise<T>) { }
   public build(seq: number): Promise<T> {
     return lift(this.func(seq));
   }
@@ -39,7 +39,7 @@ export class Derived<TOwner, TProperty> {
       owner: TOwner,
       seq: number
     ) => TProperty | Promise<TProperty>
-  ) {}
+  ) { }
   public build(owner: TOwner, seq: number): Promise<TProperty> {
     return lift(this.func(owner, seq));
   }
@@ -51,8 +51,7 @@ export interface IFactory<T, K extends keyof T, U> {
 }
 
 export class Factory<T, K extends keyof T = keyof T>
-  implements IFactory<T, K, T>
-{
+  implements IFactory<T, K, T> {
   private seqNum: number;
   private getStartingSequenceNumber = () =>
     (this.config && this.config.startingSequenceNumber) || 0;
@@ -258,12 +257,11 @@ export class Factory<T, K extends keyof T = keyof T>
 }
 
 export class TransformFactory<T, K extends keyof T, U>
-  implements IFactory<T, K, U>
-{
+  implements IFactory<T, K, U> {
   constructor(
     private readonly inner: Factory<T, K>,
     private readonly transform: (t: T) => U | Promise<U>
-  ) {}
+  ) { }
   public build = (async (item?: RecPartial<T> & Omit<T, K>): Promise<U> => {
     const v = await this.inner.build(item as any);
     const u = await lift(this.transform(v));
@@ -319,10 +317,12 @@ async function buildBase<T, K extends keyof T>(
         value = await (v as Generator<any>).build(seqNum);
       } else if (v.constructor == Derived) {
         derived.push({ key, derived: v });
+        value = {};
       } else if (v.constructor === Sync.Generator) {
         value = (v as Sync.Generator<any>).build(seqNum);
       } else if (v.constructor == Sync.Derived) {
         derived.push({ key, derived: new Derived(v.func) });
+        value = {};
       } else {
         value = cloneDeep(v);
       }
