@@ -323,6 +323,34 @@ describe("async factories build stuff", () => {
     const obj2 = await tenXFactory.build({ fooz: 25 });
     expect(obj2.fooz).toEqual(25);
   });
+  it("successfully overrides a derivation", async () => {
+    interface A {
+      prop1: string;
+      prop2: string;
+      prop3: string;
+    }
+
+    interface B {
+      a: A;
+      b: string;
+    }
+    const factory2 = Async.makeFactory<B>(
+      {
+        a: {} as A,
+        b: "value",
+      }).withDerivation("a", async (b) => ({
+        prop1: b.b,
+        prop2: b.b,
+        prop3: b.b,
+      }));
+    expect(await factory2.build({ b: "b" })).toEqual({
+      a: { prop1: "b", prop2: "b", prop3: "b" }, b: "b"
+    });
+    expect(await factory2.build({ b: "b", a: { prop1: "a" } })).toEqual({
+      a: { prop1: "a" }, b: "b"
+    });
+
+  });
   it.skip("supports tuples at root (TODO)", async () => {
     const generator: Async.Generator<[number, number]> = Async.each<
       [number, number]

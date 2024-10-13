@@ -14,13 +14,13 @@ export type ListFactoryFunc<T, K extends keyof T> = keyof T extends K
   : (count: number, item: RecPartial<T> & Omit<T, K>) => T[];
 
 export class Generator<T> {
-  constructor(readonly func: (seq: number) => T) {}
+  constructor(readonly func: (seq: number) => T) { }
   public build(seq: number): T {
     return this.func(seq);
   }
 }
 export class Derived<TOwner, TProperty> {
-  constructor(readonly func: (owner: TOwner, seq: number) => TProperty) {}
+  constructor(readonly func: (owner: TOwner, seq: number) => TProperty) { }
   public build(owner: TOwner, seq: number): TProperty {
     const ret = this.func(owner, seq);
     return ret;
@@ -268,6 +268,7 @@ function buildBase<T, K extends keyof T>(
         value = v.build(seqNum);
       } else if (v.constructor == Derived) {
         derived.push({ key, derived: v });
+        value = {};
       } else {
         value = cloneDeep(v);
       }
