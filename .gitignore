@@ -30,6 +30,13 @@ build/Release
 node_modules
 jspm_packages
 yarn_packages
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
 # Optional npm cache directory
 .npm

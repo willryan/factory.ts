@@ -1,6 +1,6 @@
 {
   "name": "factory.ts",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "license": "MIT",
   "description": "A Typescript test data factory similar to factory_bot and rosie",
   "scripts": {
@@ -62,5 +62,6 @@
   "dependencies": {
     "clone-deep": "^4.0.1",
     "source-map-support": "^0.5.21"
-  }
+  },
+  "packageManager": "yarn@4.5.0"
 }
