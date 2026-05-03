@@ -200,6 +200,21 @@ describe("async factories build stuff", () => {
     expect(aStore.aisle.typeOfFood).toEqual("Junk Food");
     expect(aStore.aisle.tags).toEqual(["a", "b"]);
   });
+  it("replaces a primitive default with a plain object override (issue #87)", async () => {
+    type Row = {
+      email: string;
+      name: string;
+      location: string | { abcd: string };
+    };
+    const factory = Async.makeFactory<Row>({
+      email: "a@b.c",
+      name: "n",
+      location: "09145add-752d-b73d-b0fe-9fa3870",
+    });
+    const row = await factory.build({ location: { abcd: "hello" } });
+    expect(row.location).toEqual({ abcd: "hello" });
+    expect(Object.keys(row.location as object)).toEqual(["abcd"]);
+  });
   it("can transform type", async () => {
     const makeAdult = childFactory.transform<ParentType>((t) => {
       const birthday = `${2018 - t.grade - 25}/05/10`;

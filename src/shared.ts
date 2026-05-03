@@ -4,6 +4,15 @@ export declare type RecPartial<T> = {
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
+/** Plain `{}` or `Object.create(null)` — safe to walk for RecPartial-style merge. */
+function isPlainRecord(x: unknown): x is Record<string, unknown> {
+  if (x === null || typeof x !== "object") {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(x);
+  return proto === Object.prototype || proto === null;
+}
+
 export function recursivePartialOverride<U>(x: U, y: RecPartial<U>): U {
   if (y === undefined || y === null) return x;
   const objProto = Object.getPrototypeOf({});
@@ -16,7 +25,18 @@ export function recursivePartialOverride<U>(x: U, y: RecPartial<U>): U {
       const itemKeyVal = (y as any)[key];
       if (null != itemKeyVal && typeof itemKeyVal === "object") {
         const baseKeyVal = (v as any)[key];
-        (v as any)[key] = recursivePartialOverride(baseKeyVal, itemKeyVal);
+        const basePlain = isPlainRecord(baseKeyVal);
+        const overridePlain = isPlainRecord(itemKeyVal);
+        if (basePlain && overridePlain) {
+          (v as any)[key] = recursivePartialOverride(baseKeyVal, itemKeyVal);
+        } else if (!basePlain && overridePlain) {
+          // e.g. scalar/array default + object override (#87); walk override from {} so
+          // nested plain objects get the same merge rules, not a shared user reference.
+          (v as any)[key] = recursivePartialOverride({} as any, itemKeyVal) as any;
+        } else {
+          // Arrays, Dates, class instances, etc.: existing entry hook returns `y` as-is.
+          (v as any)[key] = recursivePartialOverride(baseKeyVal, itemKeyVal);
+        }
       } else {
         (v as any)[key] = itemKeyVal;
       }
