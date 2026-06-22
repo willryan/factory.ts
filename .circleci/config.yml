@@ -11,7 +11,11 @@ jobs:
     working_directory: ~/proj
 
     steps:
-      - checkout
+      - run:
+          name: Checkout code
+          command: |
+            git clone https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git .
+            git checkout "${CIRCLE_SHA1}"
 
       # Download and cache dependencies
       - restore_cache:
@@ -20,6 +24,7 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
+      - run: sudo corepack enable
       - run: yarn install
 
       - save_cache:
