@@ -209,6 +209,22 @@ describe("factories build stuff", () => {
     expect(aStore.aisle.typeOfFood).toEqual("Junk Food");
     expect(aStore.aisle.tags).toEqual(["a", "b"]);
   });
+  it("replaces a primitive default with a plain object override (issue #87)", () => {
+    type Row = {
+      email: string;
+      name: string;
+      /** Factory default is a scalar; overrides may substitute a keyed object */
+      location: string | { abcd: string };
+    };
+    const factory = Sync.makeFactory<Row>({
+      email: "a@b.c",
+      name: "n",
+      location: "09145add-752d-b73d-b0fe-9fa3870",
+    });
+    const row = factory.build({ location: { abcd: "hello" } });
+    expect(row.location).toEqual({ abcd: "hello" });
+    expect(Object.keys(row.location as object)).toEqual(["abcd"]);
+  });
   it("supports self-recursion with generator", () => {
     interface TypeA {
       foo: number;
